@@ -43,15 +43,15 @@
 
             const options = {
                 genres: {
-                    ko: ['어쿠스틱 발라드', '팝', '록', '일렉트로닉', '힙합', 'R&B', '재즈', '클래식', '포크', '인디', '컨트리', '블루스', '레게', '메탈', '펑크', '디스코', '소울', 'EDM', '하우스', '테크노', '트랜스', '덥스텝', '드럼 앤 베이스', '트랩', '보사노바', '플라멩코', '탱고', 'K-POP', 'J-POP', '시티팝', '신스팝', '뉴에이지', '앰비언트', '칠아웃', '로파이', '포스트록', '슈게이징', '인더스트리얼', '고스', '이모', '그런지', '펑크록', '하드록', '프로그레시브록'],
-                    en: ['Acoustic Ballad', 'Pop', 'Rock', 'Electronic', 'Hip-Hop', 'R&B', 'Jazz', 'Classical', 'Folk', 'Indie', 'Country', 'Blues', 'Reggae', 'Metal', 'Punk', 'Disco', 'Soul', 'EDM', 'House', 'Techno', 'Trance', 'Dubstep', 'Drum and Bass', 'Trap', 'Bossa Nova', 'Flamenco', 'Tango', 'K-POP', 'J-POP', 'City Pop', 'Synth-pop', 'New Age', 'Ambient', 'Chillout', 'Lo-fi', 'Post-rock', 'Shoegaze', 'Industrial', 'Goth', 'Emo', 'Grunge', 'Punk Rock', 'Hard Rock', 'Progressive Rock']
+                    ko: ['발라드', '팝', '록', '일렉트로닉', '힙합', 'R&B', '재즈', '클래식', '포크', '인디', '컨트리', '블루스', '레게', '메탈', '펑크', '디스코', '소울', 'EDM', '하우스', '테크노', '트랜스', '덥스텝', '드럼 앤 베이스', '트랩', '보사노바', '플라멩코', '탱고', 'K-POP', 'J-POP', '시티팝', '신스팝', '뉴에이지', '앰비언트', '칠아웃', '로파이', '포스트록', '슈게이징', '인더스트리얼', '고스', '이모', '그런지', '펑크록', '하드록', '프로그레시브록'],
+                    en: ['Ballad', 'Pop', 'Rock', 'Electronic', 'Hip-Hop', 'R&B', 'Jazz', 'Classical', 'Folk', 'Indie', 'Country', 'Blues', 'Reggae', 'Metal', 'Punk', 'Disco', 'Soul', 'EDM', 'House', 'Techno', 'Trance', 'Dubstep', 'Drum and Bass', 'Trap', 'Bossa Nova', 'Flamenco', 'Tango', 'K-POP', 'J-POP', 'City Pop', 'Synth-pop', 'New Age', 'Ambient', 'Chillout', 'Lo-fi', 'Post-rock', 'Shoegaze', 'Industrial', 'Goth', 'Emo', 'Grunge', 'Punk Rock', 'Hard Rock', 'Progressive Rock']
                 },
                 moods: {
                     ko: ['감성적인', '경쾌한', '우울한', '에너제틱', '로맨틱', '평화로운', '긴장감 있는', '희망적인', '신비로운', '강렬한', '따뜻한', '차가운', '몽환적인', '어두운', '밝은', '슬픈', '화난', '섹시한', '유쾌한', '멜랑콜리한', '향수를 자극하는', '웅장한', '섬세한', '거친', '부드러운', '극적인', '서정적인', '애절한', '장난스러운', '진지한', '반항적인', '고요한', '격정적인', '황홀한'],
                     en: ['Emotional', 'Upbeat', 'Melancholic', 'Energetic', 'Romantic', 'Peaceful', 'Tense', 'Hopeful', 'Mysterious', 'Intense', 'Warm', 'Cold', 'Dreamy', 'Dark', 'Bright', 'Sad', 'Angry', 'Sexy', 'Cheerful', 'Melancholy', 'Nostalgic', 'Epic', 'Delicate', 'Rough', 'Smooth', 'Dramatic', 'Lyrical', 'Heartbreaking', 'Playful', 'Serious', 'Rebellious', 'Serene', 'Passionate', 'Euphoric']
                 },
                 vocals: {
-                    ko: ['남성 보컬', '여성 보컬', '남성 듀엣', '여성 듀엣', '남녀 듀엣', '혼성 합창', '남성 합창', '여성 합창', '어린이 합창', '아카펠라', '랩', '스포큰 워드', '보컬 없음', '허밍', '휘슬링', '비브라토', '팔세토', '하모니', '백그라운드 보컬'],
+                    ko: ['남성 보컬', '여성 보컬', '남성 듀엣', '여성 듀엣', '남녀 듀엣', '혼성 합창', '남성 합창', '여성 합창', '어린이 합창', '아카펠라', '랩', '말하듯', '보컬 없음', '허밍', '휘파람', '비브라토', '가성', '하모니', '백그라운드 보컬'],
                     en: ['Male Vocal', 'Female Vocal', 'Male Duet', 'Female Duet', 'Mixed Duet', 'Mixed Choir', 'Male Choir', 'Female Choir', 'Children Choir', 'A Cappella', 'Rap', 'Spoken Word', 'No Vocal', 'Humming', 'Whistling', 'Vibrato', 'Falsetto', 'Harmony', 'Background Vocal']
                 },
                 instruments: {
@@ -59,8 +59,8 @@
                     en: ['acoustic guitar', 'electric guitar', 'bass guitar', 'piano', 'synthesizer', 'drums', 'electronic drums', 'cello', 'violin', 'viola', 'double bass', 'harp', 'flute', 'saxophone', 'trumpet', 'trombone', 'clarinet', 'harmonica', 'accordion', 'banjo', 'mandolin', 'ukulele', 'tabla', 'bongo', 'conga', 'marimba', 'organ', 'string section', 'brass section', 'percussion', '808 bass', 'sampling', 'loops', 'pad sounds']
                 },
                 mixingStyles: {
-                    ko: ['인티메이트', '시네마틱', '하이파이', '로파이', '빈티지', '모던', '로우', '폴리시', '미니멀리스트', '레이어드', '앰비언트', '컴프레스드', '리버브 헤비', '드라이', '스테레오 와이드', '모노', '애널로그', '디지털', '글리치', '디스토션', '클린', '크런치', '페이저', '코러스', '딜레이', '에코', 'A/B 스테레오', '프로덕션', '실험적', '메인스트림'],
-                    en: ['intimate', 'cinematic', 'high-fidelity', 'lo-fi', 'vintage', 'modern', 'raw', 'polished', 'minimalist', 'layered', 'ambient', 'compressed', 'reverb heavy', 'dry', 'stereo wide', 'mono', 'analog', 'digital', 'glitch', 'distortion', 'clean', 'crunch', 'phaser', 'chorus', 'delay', 'echo', 'A/B stereo', 'production', 'experimental', 'mainstream']
+                    ko: ['가까이에서 들리는 듯', '시네마틱', '하이파이', '로파이', '빈티지', '모던', '비압축', '부드럽고 세련되게', '간결하고 명료하게', '입체감·풍부함', '공간적 분위기와 여운', '음량 고저 평탄화', '잔향 효과', '순수한 원음', '스테레오 와이드', '모노', '아날로그', '디지털', '불규칙한 소리', '찢어지는 듯한 음질', '클린', '거칠고 묵직한', '소리가 겹쳐진 듯한', '코러스', '딜레이', '에코', '프로덕션', '실험적', '대중적인'],
+                    en: ['intimate', 'cinematic', 'high-fidelity', 'lo-fi', 'vintage', 'modern', 'raw', 'polished', 'minimalist', 'layered', 'ambient', 'compressed', 'reverb heavy', 'dry', 'stereo wide', 'mono', 'analog', 'digital', 'glitch', 'distortion', 'clean', 'crunch', 'phaser', 'chorus', 'delay', 'echo', 'production', 'experimental', 'mainstream']
                 }
             };
 
