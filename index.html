@@ -121,14 +121,8 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ contents: [{ parts: [{ text: "hi" }] }] })
                     });
-                    
                     const data = await response.json();
-                    
-                    if (!response.ok || data.error) {
-                        console.error("API Test Error:", data);
-                        throw new Error(data.error?.message || "API Connect Failed");
-                    }
-                    
+                    if (!response.ok || data.error) throw new Error(data.error?.message || "API Connect Failed");
                     localStorage.setItem('_nimo_gemini_key', encryptKey(apiKey));
                     setTestStatus('success');
                     setTimeout(() => setShowSettings(false), 1000);
@@ -139,7 +133,6 @@
                 }
             };
 
-            // [수정됨] systemRole을 고급 프롬프트 엔지니어링에 맞게 변경
             const generatePrompt = async () => {
                 const savedKey = localStorage.getItem('_nimo_gemini_key');
                 if (!savedKey) { setShowSettings(true); return; }
@@ -148,26 +141,40 @@
                 setIsGenerating(true);
                 const realKey = decryptKey(savedKey);
 
-                // AI 프롬프트 마스터 역할 부여 및 하이퍼 리얼리즘 소재 활용 지시
+                // [중요] 프롬프트 엔지니어링 개선 (가사 언어 고정, 클리셰 금지, 포맷팅 규칙 강화)
                 const systemRole = ` 
-                    You are the 'NIMO Music Prompt Architect', an AI specializing in Suno AI v5 prompt optimization. Your goal is to generate a high-quality, technically precise English prompt based on user input, designed for maximum Suno algorithm performance.
+                    ROLE: You are the 'NIMO Music Prompt Architect', the world's best expert in Suno AI v5.
 
-                    Rules for Prompt Generation:
-                    1.  **Technical Keywords & Hyperrealism:** Translate user selections (genres, moods, eras, etc.) into specific musical terminology. Avoid clichés. Use hyperrealistic, concrete imagery and scenarios for lyrical themes.
-                    2.  **Target Model:** Suno AI v5.
-                    3.  **Output Format:** The final output must be ready to copy-paste into Suno AI, including a Title, Style Prompt, and Lyrics.
-                    4.  **Style Prompt Details:** Incorporate:
-                        *   High-fidelity / Lo-fi (as appropriate)
-                        *   Specific genre and subgenre combinations (e.g., "Modern 2020s Hip-Hop Soul R&B")
-                        *   Mood and emotional texture (e.g., "Soulful", "Atmospheric", "Mournful")
-                        *   Instrumentation details (e.g., "organic woody acoustic guitar fingerstyle", "deep 808 bassline", "detailed string squeaks", "no drums")
-                        *   Vocal characteristics (e.g., "[Vocal: Male, Breathy and Raspy Female]", "[Vocal: Soulful Emotional Texture]")
-                        *   Tempo and Key (e.g., "[Tempo: Mid-Tempo]", "[Key: Minor]")
-                        *   Mixing and Mastering style (e.g., "[Mixing: Intimate, Compressed]", "[Mastering: High Fidelity]")
-                        *   Ambiance and room sound (e.g., "natural room ambiance", "ultra-close-mic intimacy")
-                        *   Production style references (e.g., "2025 Billboard high-end female vocal production")
-                    5.  **Lyrics:** Generate narrative lyrics in English based on the user's theme, focusing on hyperrealistic details and a clear story arc. Ensure lyrics are poetic yet grounded, avoiding generic romantic or emotional clichés. Structure with [Intro], [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge], [Outro].
-                    6.  **Era Integration:** If 'Eras' are selected, integrate them into the style description (e.g., "Vintage 1970s Funk"). If 'Timeless' or 'Futuristic' are selected, adapt accordingly.
+                    [STRICT RULES - FOLLOW THESE OR FAIL]
+                    1. **LYRICS LANGUAGE**: The lyrics MUST be written in **${formData.lyricsLanguage === 'ko' ? 'KOREAN (Hangul)' : 'ENGLISH'}** only. This is the most important rule.
+                    
+                    2. **STYLE PROMPT FORMAT**: 
+                       - Do NOT use brackets [ ]. 
+                       - Use commas (,) to separate tags.
+                       - Example: "Acoustic Ballad, Male Vocal, 68bpm, Melancholic".
+                       
+                    3. **NO CLICHÉS (HYPER-REALISM)**:
+                       - FORBIDDEN WORDS: "window pane", "rain on the glass", "tears", "broken heart", "neon lights", "darkness", "scars", "chasing dreams".
+                       - REQUIRED STRATEGY: Use specific, gritty, object-oriented imagery. 
+                       - Example: Instead of "I'm sad", use "The coffee stain on the receipt", "The rust on the bicycle", "The blinking cursor on the screen".
+                       
+                    4. **CLEAN OUTPUT**:
+                       - Do NOT use asterisks (*, **) or hash marks (#) or markdown formatting.
+                       - Just plain text.
+                    
+                    5. **STRUCTURE**:
+                       - Generate specific sections: [Intro], [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge], [Outro].
+                       - Use [Meta Tags] inside the lyrics only for structure (e.g., [Intro]).
+                       - Style tags in the "Style Prompt" section must be English technical terms.
+
+                    INPUT DATA:
+                    - Theme: "${formData.theme}"
+                    - Genre/Mood/Instruments: ${JSON.stringify(formData)}
+                    
+                    OUTPUT FORMAT:
+                    Title: (Creative Title)
+                    Style Prompt: (Comma separated technical terms)
+                    Lyrics: (The full lyrics)
                 `;   
 
                 try {
@@ -176,60 +183,49 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             contents: [{ 
-                                parts: [{ 
-                                    text: `${systemRole}\n\nUser Input JSON: ${JSON.stringify({
-                                        ...formData,
-                                        // Add a thematic keyword based on the user's input for better lyric generation
-                                        themeKeyword: formData.theme.split(' ').slice(-3).join(' ') || 'everyday life' 
-                                    })}` 
-                                }] 
+                                parts: [{ text: systemRole }] 
                             }]
                         })
                     });
                     
                     const data = await res.json();
                     
-                    if (!res.ok || data.error) {
-                        console.error("Generate Error Response:", data);
-                        throw new Error(data.error?.message || `API Error: ${res.status} ${res.statusText}`);
-                    }
+                    if (!res.ok || data.error) throw new Error(data.error?.message || "API Error");
 
-                    if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
-                        setResult(data.candidates[0].content.parts[0].text);
+                    if (data.candidates && data.candidates[0].content) {
+                        // 결과물에서 Markdown 문자(*) 제거 필터링
+                        const rawText = data.candidates[0].content.parts[0].text;
+                        const cleanText = rawText.replace(/\*/g, '').replace(/#/g, '');
+                        setResult(cleanText);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     } else {
-                        throw new Error("No candidates or content found in the API response.");
+                        throw new Error("No content generated.");
                     }
 
                 } catch (err) { 
-                    console.error("Prompt Generation Failed:", err);
-                    alert(`오류가 발생했습니다: ${err.message}\nAPI 키를 확인하고, 선택한 옵션이 올바른지 다시 확인해주세요.`);
+                    console.error("Error:", err);
+                    alert(`오류: ${err.message}`);
                 }
                 finally { setIsGenerating(false); }
             };
 
-            // 결과 텍스트를 복사하는 함수
             const copyToClipboard = (text, label) => {
-                navigator.clipboard.writeText(text).then(() => {
-                    alert(`${label} 복사 완료!`);
-                }).catch(err => {
-                    console.error('Clipboard copy failed:', err);
-                    alert('복사 실패. 브라우저 설정을 확인해주세요.');
-                });
+                if (!text) return;
+                navigator.clipboard.writeText(text).then(() => alert(`${label} 복사 완료!`));
             };
 
-            // 결과물 파싱 (제목, 스타일, 가사)
             const parseResult = (resultText) => {
                 if (!resultText) return { title: '', style: '', lyrics: '' };
-
-                const titleMatch = resultText.match(/Title:\s*(.*)/);
-                const styleMatch = resultText.match(/Style Prompt:\s*([\s\S]*?)(?=Lyrics:|$)/);
-                const lyricsMatch = resultText.match(/Lyrics:\s*([\s\S]*)/);
+                
+                // 특수문자가 제거된 상태지만 안전하게 파싱
+                const titleMatch = resultText.match(/Title:\s*(.*)/i);
+                const styleMatch = resultText.match(/Style Prompt:\s*([\s\S]*?)(?=Lyrics:|$)/i);
+                const lyricsMatch = resultText.match(/Lyrics:\s*([\s\S]*)/i);
 
                 return {
                     title: titleMatch ? titleMatch[1].trim() : 'Untitled',
-                    style: styleMatch ? styleMatch[1].trim() : 'No style prompt generated.',
-                    lyrics: lyricsMatch ? lyricsMatch[1].trim() : 'No lyrics generated.'
+                    style: styleMatch ? styleMatch[1].trim() : '',
+                    lyrics: lyricsMatch ? lyricsMatch[1].trim() : ''
                 };
             };
 
@@ -275,7 +271,7 @@
                                     <div>
                                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 italic">테마 / THEME & STORY</label>
                                         <textarea className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 h-[72px] font-medium text-sm" 
-                                            placeholder="예: 낡은 집에 남겨진 흔적들, 잊혀진 도시의 소리" 
+                                            placeholder="예: 낡은 집에 남겨진 흔적들, 잊혀진 도시의 소리 (구체적일수록 좋습니다)" 
                                             value={formData.theme}
                                             onChange={e => setFormData(prev => ({...prev, theme: e.target.value}))} />
                                     </div>
@@ -296,7 +292,6 @@
                                     </div>
                                 </div>
 
-                                {/* 결과물 섹션 */}
                                 <div className="mb-10">
                                     <div className="flex justify-between items-center">
                                         <h3 className="text-lg font-bold text-gray-800 mb-3">Song Title</h3>
