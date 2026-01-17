@@ -225,9 +225,44 @@
                         </div>
                     )}
                 </div>
-            );
-        };
-
+            );      
+        };          
+                    {showHelp && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-md animate-fade">
+        <div className="bg-white rounded-[3rem] w-full max-w-lg p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
+            <button onClick={() => setShowHelp(false)} className="absolute top-8 right-8 text-gray-300 hover:text-black">
+                <i className="fa-solid fa-xmark text-2xl"></i>
+            </button>
+            <h3 className="text-2xl font-black italic tracking-tighter mb-8 text-blue-600 border-b pb-4">HELP GUIDE</h3>
+            <div className="space-y-8 text-sm text-left">
+                <section>
+                    <h4 className="font-black text-gray-900 mb-2 flex items-center gap-2">
+                        <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px]">1</span>
+                        API 키 발급
+                    </h4>
+                    <p className="text-gray-500 ml-8 font-medium text-xs leading-relaxed">
+                        구글 계정으로 로그인 후 <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-blue-500 underline font-bold">Google AI Studio</a>에서 API 키를 생성하세요.
+                    </p>
+                </section>
+                <section>
+                    <h4 className="font-black text-gray-900 mb-2 flex items-center gap-2">
+                        <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px]">2</span>
+                        설정 및 저장
+                    </h4>
+                    <p className="text-gray-500 ml-8 font-medium text-xs leading-relaxed">상단 <b>API SETTINGS</b> 버튼을 눌러 발급받은 키를 입력하고 연결 테스트를 진행하세요.</p>
+                </section>
+                <section>
+                    <h4 className="font-black text-gray-900 mb-2 flex items-center gap-2">
+                        <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px]">3</span>
+                        프롬프트 생성
+                    </h4>
+                    <p className="text-gray-500 ml-8 font-medium text-xs leading-relaxed">장르, 무드 등 옵션을 선택하고 테마를 입력한 뒤 생성 버튼을 누르면 Suno AI용 프롬프트가 완성됩니다.</p>
+                </section>
+            </div>
+            <button onClick={() => setShowHelp(false)} className="w-full mt-10 py-5 bg-black text-white rounded-2xl font-black hover:bg-blue-600 transition-all">CLOSE</button>
+        </div>
+    </div>
+)}
         const App = () => {
             const [isAuth, setIsAuth] = useState(false);
             const [pw, setPw] = useState('');
