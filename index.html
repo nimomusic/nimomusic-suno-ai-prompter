@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NIMO MUSIC v5 - Prompt Architect</title>
+    <title>NIMO MUSIC v1.0 - Prompt Architect</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -160,7 +160,7 @@
                     <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-40">
                         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                             <div className="flex items-center gap-2 font-black italic text-xl tracking-tighter text-blue-600 uppercase">
-                                <i className="fa-solid fa-bolt-lightning"></i> NIMO MUSIC v5
+                                <i className="fa-solid fa-bolt-lightning"></i> SUNO AI PROMPT GENERATOR V1.0
                             </div>
                             <div className="flex gap-2">
                                 <button onClick={() => setShowHelp(true)} className="px-4 py-2 rounded-full bg-blue-50 text-blue-600 text-[11px] font-black hover:bg-blue-100 transition-all flex items-center gap-2"><i className="fa-solid fa-circle-question"></i> HELP</button>
@@ -173,11 +173,11 @@
                     <main className="max-w-6xl mx-auto px-6 py-10">
                         {!result ? (
                             <div className="bg-white rounded-[2.5rem] shadow-xl border p-8 md:p-12 animate-fade">
-                                <RenderOptions label="장르 / GENRE (v5 Opt)" field="genre" list={options.genres[language]} />
+                                <RenderOptions label="장르 / GENRE" field="genre" list={options.genres[language]} />
                                 <RenderOptions label="무드 / MOOD" field="mood" list={options.moods[language]} />
                                 <RenderOptions label="보컬 / VOCAL" field="vocal" list={options.vocals[language]} />
                                 <RenderOptions label="악기 / INSTRUMENTS" field="instruments" list={options.instruments[language]} />
-                                <RenderOptions label="믹싱 / MIXING (TEXTURE)" field="mixing" list={options.mixingStyles[language]} />
+                                <RenderOptions label="믹싱 / MIXING" field="mixing" list={options.mixingStyles[language]} />
 
                                 <div className="grid md:grid-cols-2 gap-8 mb-12 border-t pt-10">
                                     <div>
@@ -268,11 +268,11 @@
                     <div className="max-w-md w-full space-y-10 text-center animate-fade">
                         <div className="space-y-2">
                             <h1 className="text-6xl font-black italic tracking-tighter">NIMO MUSIC</h1>
-                            <p className="text-blue-500 font-black text-xs tracking-[0.3em]">PROMPT ARCHITECT v5</p>
+                            <p className="text-blue-500 font-black text-xs tracking-[0.3em]">Suno AI Prompt Generator v1.0</p>
                         </div>
                         <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="PASSWORD" 
                             className="w-full bg-white/10 border border-white/20 rounded-2xl py-6 text-center font-bold tracking-[1em] outline-none focus:border-blue-500" />
-                        <button onClick={() => pw === 'nimo123' && setIsAuth(true)} className="w-full bg-white text-black py-6 rounded-2xl font-black text-lg hover:bg-blue-500 hover:text-white transition-all">ENTER ENGINE</button>
+                        <button onClick={() => pw === 'nimo123' && setIsAuth(true)} className="w-full bg-white text-black py-6 rounded-2xl font-black text-lg hover:bg-blue-500 hover:text-white transition-all">ENTER</button>
                     </div>
                 </div>
             );
