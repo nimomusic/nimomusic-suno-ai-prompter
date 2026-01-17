@@ -12,11 +12,9 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; }
-        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
         .btn-active { background: #2563eb !important; color: white !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
         .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* 버튼 클릭 시 파란색 아웃라인 제거 */
         button:focus { outline: none; }
     </style>
 </head>
@@ -24,7 +22,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useCallback } = React;
+        const { useState, useEffect } = React;
 
         const encryptKey = (key) => btoa(key).split('').reverse().join('');
         const decryptKey = (enc) => atob(enc.split('').reverse().join(''));
@@ -39,7 +37,7 @@
             const [testStatus, setTestStatus] = useState('idle');
             
             const initialFormState = {
-                genre: [], mood: [], vocal: [], instruments: [], mixing: [], era: '', theme: '', lyricsLanguage: 'ko'
+                genre: [], mood: [], vocal: [], instruments: [], mixing: [], theme: '', lyricsLanguage: 'ko'
             };
             const [formData, setFormData] = useState(initialFormState);
 
@@ -72,12 +70,12 @@
             }, []);
 
             const resetOptions = (e) => {
-                e.preventDefault(); // 화면 튐 방지
+                e.preventDefault();
                 setFormData(initialFormState);
             };
 
             const toggleSelection = (e, field, value) => {
-                e.preventDefault(); // 1 & 2 반영: 앵커 동작 방지 및 화면 고정
+                e.preventDefault();
                 setFormData(prev => ({
                     ...prev, [field]: prev[field].includes(value) ? prev[field].filter(v => v !== value) : [...prev[field], value]
                 }));
@@ -112,32 +110,30 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            contents: [{ parts: [{ text: `You are a professional Suno AI v4 prompter. Create Title, Style Tags, and Lyrics based on: ${JSON.stringify(formData)}. Use ${formData.lyricsLanguage}.` }] }]
+                            contents: [{ parts: [{ text: `Create a Suno AI v4 music prompt: ${JSON.stringify(formData)}. Language: ${formData.lyricsLanguage}.` }] }]
                         })
                     });
                     const data = await res.json();
                     setResult(data.candidates[0].content.parts[0].text);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
-                } catch (err) { alert("API 호출 실패"); }
+                } catch (err) { alert("API Error"); }
                 finally { setIsGenerating(false); }
             };
 
             const RenderOptions = ({ label, field, list }) => (
-                <div className="mb-10 relative">
+                <div className="mb-10">
                     <div className="flex justify-between items-center mb-4">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">{label}</label>
-                        {/* 3 반영: 옵션 초기화 버튼 (우측 상단 위치) */}
                         {field === 'genre' && (
                             <button onClick={resetOptions} className="text-[10px] font-black text-red-400 hover:text-red-600 border border-red-100 px-3 py-1 rounded-full transition-all bg-red-50">
                                 <i className="fa-solid fa-rotate-left mr-1"></i> RESET ALL
                             </button>
                         )}
                     </div>
-                    {/* 1 반영: max-h 및 overflow 제거하여 전체 펼침 */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 p-1">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                         {list.map(val => (
                             <button key={val} onClick={(e) => toggleSelection(e, field, val)}
-                                className={`px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all border ${formData[field].includes(val) ? 'btn-active border-blue-600 scale-95' : 'bg-white text-gray-400 border-gray-100 hover:border-blue-200 hover:text-blue-400'}`}>
+                                className={`px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all border ${formData[field].includes(val) ? 'btn-active border-blue-600 scale-95' : 'bg-white text-gray-400 border-gray-100 hover:border-blue-200'}`}>
                                 {val}
                             </button>
                         ))}
@@ -146,11 +142,11 @@
             );
 
             return (
-                <div className="min-h-screen pb-20">
+                <div className="min-h-screen pb-20 relative">
                     <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-40">
                         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                             <div className="flex items-center gap-2 font-black italic text-xl tracking-tighter text-blue-600">
-                                <i className="fa-solid fa-bolt-lightning"></i> NIMO MUSIC SUNO AI PROMPTER
+                                <i className="fa-solid fa-bolt-lightning"></i> NIMO MUSIC
                             </div>
                             <div className="flex gap-2">
                                 <button onClick={() => setShowHelp(true)} className="px-4 py-2 rounded-full bg-blue-50 text-blue-600 text-[11px] font-black hover:bg-blue-100 transition-all flex items-center gap-2"><i className="fa-solid fa-circle-question"></i> HELP</button>
@@ -210,10 +206,44 @@
                         )}
                     </main>
 
-                    {/* API SETTINGS & HELP MODALS (동일 로직 유지) */}
+                    {/* --- [도움말 모달 - 복구 완료] --- */}
+                    {showHelp && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-md animate-fade">
+                            <div className="bg-white rounded-[3rem] w-full max-w-lg p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
+                                <button onClick={() => setShowHelp(false)} className="absolute top-8 right-8 text-gray-300 hover:text-black"><i className="fa-solid fa-xmark text-2xl"></i></button>
+                                <h3 className="text-2xl font-black italic tracking-tighter mb-8 text-blue-600 border-b pb-4">HELP GUIDE</h3>
+                                <div className="space-y-8 text-sm">
+                                    <section>
+                                        <h4 className="font-black text-gray-900 mb-2 flex items-center gap-2 text-left">
+                                            <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px]">1</span>
+                                            API 키 발급
+                                        </h4>
+                                        <p className="text-gray-500 ml-8 text-left">구글 계정으로 로그인 후 <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-blue-500 underline font-bold">여기</a>에서 키를 생성하세요.</p>
+                                    </section>
+                                    <section>
+                                        <h4 className="font-black text-gray-900 mb-2 flex items-center gap-2 text-left">
+                                            <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px]">2</span>
+                                            설정 및 저장
+                                        </h4>
+                                        <p className="text-gray-500 ml-8 text-left">상단 <b>API SETTINGS</b>를 눌러 키를 입력하고 연결 테스트를 진행하세요.</p>
+                                    </section>
+                                    <section>
+                                        <h4 className="font-black text-gray-900 mb-2 flex items-center gap-2 text-left">
+                                            <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px]">3</span>
+                                            프롬프트 생성
+                                        </h4>
+                                        <p className="text-gray-500 ml-8 text-left">원하는 옵션을 선택하고 생성 버튼을 누르면 Suno AI용 결과가 완성됩니다!</p>
+                                    </section>
+                                </div>
+                                <button onClick={() => setShowHelp(false)} className="w-full mt-10 py-5 bg-black text-white rounded-2xl font-black hover:bg-blue-600 transition-all">CLOSE</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* --- [API 설정 모달] --- */}
                     {showSettings && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
-                            <div className="bg-white rounded-[3rem] w-full max-w-md p-10 shadow-2xl relative">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-fade">
+                            <div className="bg-white rounded-[3rem] w-full max-w-md p-10 shadow-2xl relative text-left">
                                 <button onClick={() => setShowSettings(false)} className="absolute top-8 right-8 text-gray-300 hover:text-black"><i className="fa-solid fa-xmark text-2xl"></i></button>
                                 <h3 className="text-2xl font-black italic tracking-tighter uppercase mb-8">Gemini Config</h3>
                                 <input type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="API Key (AIzaSy...)" 
@@ -225,51 +255,16 @@
                         </div>
                     )}
                 </div>
-            );      
-        };          
-                    {showHelp && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-md animate-fade">
-        <div className="bg-white rounded-[3rem] w-full max-w-lg p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
-            <button onClick={() => setShowHelp(false)} className="absolute top-8 right-8 text-gray-300 hover:text-black">
-                <i className="fa-solid fa-xmark text-2xl"></i>
-            </button>
-            <h3 className="text-2xl font-black italic tracking-tighter mb-8 text-blue-600 border-b pb-4">HELP GUIDE</h3>
-            <div className="space-y-8 text-sm text-left">
-                <section>
-                    <h4 className="font-black text-gray-900 mb-2 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px]">1</span>
-                        API 키 발급
-                    </h4>
-                    <p className="text-gray-500 ml-8 font-medium text-xs leading-relaxed">
-                        구글 계정으로 로그인 후 <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-blue-500 underline font-bold">Google AI Studio</a>에서 API 키를 생성하세요.
-                    </p>
-                </section>
-                <section>
-                    <h4 className="font-black text-gray-900 mb-2 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px]">2</span>
-                        설정 및 저장
-                    </h4>
-                    <p className="text-gray-500 ml-8 font-medium text-xs leading-relaxed">상단 <b>API SETTINGS</b> 버튼을 눌러 발급받은 키를 입력하고 연결 테스트를 진행하세요.</p>
-                </section>
-                <section>
-                    <h4 className="font-black text-gray-900 mb-2 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px]">3</span>
-                        프롬프트 생성
-                    </h4>
-                    <p className="text-gray-500 ml-8 font-medium text-xs leading-relaxed">장르, 무드 등 옵션을 선택하고 테마를 입력한 뒤 생성 버튼을 누르면 Suno AI용 프롬프트가 완성됩니다.</p>
-                </section>
-            </div>
-            <button onClick={() => setShowHelp(false)} className="w-full mt-10 py-5 bg-black text-white rounded-2xl font-black hover:bg-blue-600 transition-all">CLOSE</button>
-        </div>
-    </div>
-)}
+            );
+        };
+
         const App = () => {
             const [isAuth, setIsAuth] = useState(false);
             const [pw, setPw] = useState('');
             if (!isAuth) return (
                 <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-6">
                     <div className="max-w-md w-full space-y-10 text-center animate-fade">
-                        <h1 className="text-6xl font-black italic tracking-tighter">NIMO MUSIC SUNO AI PROMPTER</h1>
+                        <h1 className="text-6xl font-black italic tracking-tighter">NIMO MUSIC</h1>
                         <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="PASSWORD" 
                             className="w-full bg-white/10 border border-white/20 rounded-2xl py-6 text-center font-bold tracking-[1em] outline-none focus:border-blue-500" />
                         <button onClick={() => pw === 'nimo123' && setIsAuth(true)} className="w-full bg-white text-black py-6 rounded-2xl font-black text-lg hover:bg-blue-500 hover:text-white transition-all">ENTER</button>
