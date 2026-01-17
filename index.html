@@ -16,11 +16,13 @@
         .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         button:focus { outline: none; }
-        /* 스크롤바 커스텀 */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        /* Result Copy Buttons */
+        .copy-btn-group { opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .result-card:hover .copy-btn-group { opacity: 1; }
     </style>
 </head>
 <body>
@@ -32,7 +34,6 @@
         const encryptKey = (key) => btoa(key).split('').reverse().join('');
         const decryptKey = (enc) => atob(enc.split('').reverse().join(''));
 
-        // 데이터 옵션 정의 (Eras 추가됨)
         const OPTIONS = {
             eras: { 
                 ko: ['중세', '르네상스', '바로크', '고전주의', '낭만주의', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s', '2010s', '2020s', '미래적', '시대 무관'], 
@@ -60,7 +61,6 @@
             }
         };
 
-        // RenderOptions 컴포넌트 분리 (최적화)
         const RenderOptions = React.memo(({ label, field, list, selectedValues, onToggle, onReset }) => (
             <div className="mb-10">
                 <div className="flex justify-between items-center mb-4">
@@ -91,7 +91,6 @@
             const [apiKey, setApiKey] = useState('');
             const [testStatus, setTestStatus] = useState('idle');
             
-            // eras 추가된 초기 상태
             const initialFormState = {
                 genre: [], era: [], mood: [], vocal: [], instruments: [], mixing: [], theme: '', lyricsLanguage: 'ko'
             };
@@ -122,14 +121,25 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ contents: [{ parts: [{ text: "hi" }] }] })
                     });
+                    
                     const data = await response.json();
-                    if (data.error) throw new Error();
+                    
+                    if (!response.ok || data.error) {
+                        console.error("API Test Error:", data);
+                        throw new Error(data.error?.message || "API Connect Failed");
+                    }
+                    
                     localStorage.setItem('_nimo_gemini_key', encryptKey(apiKey));
                     setTestStatus('success');
                     setTimeout(() => setShowSettings(false), 1000);
-                } catch (e) { setTestStatus('fail'); }
+                } catch (e) {
+                    console.error(e);
+                    alert(`연결 실패: ${e.message}`);
+                    setTestStatus('fail'); 
+                }
             };
 
+            // [수정됨] systemRole을 고급 프롬프트 엔지니어링에 맞게 변경
             const generatePrompt = async () => {
                 const savedKey = localStorage.getItem('_nimo_gemini_key');
                 if (!savedKey) { setShowSettings(true); return; }
@@ -138,18 +148,26 @@
                 setIsGenerating(true);
                 const realKey = decryptKey(savedKey);
 
-                // Prompt Engineering 강화 (Era 정보 포함)
+                // AI 프롬프트 마스터 역할 부여 및 하이퍼 리얼리즘 소재 활용 지시
                 const systemRole = ` 
-                    You are the 'NIMO Music Prompt Architect', an expert in Suno AI v5.
-                    Your mission is to transform raw user selections into a high-end music production blueprint.
-                
-                     Follow these rules:
-                    1. [Style Keywords]: Combine Genres (${formData.genre.join(', ')}), Eras (${formData.era.join(', ')}), and Moods (${formData.mood.join(', ')}) into professional music production terminology.
-                    2. [Structure]: Define a clear song structure: [Intro], [Verse], [Chorus], [Bridge], [Outro].
-                    3. [Instrumentation]: Balance the selected instruments: ${formData.instruments.join(', ')}.
-                    4. [Metatags]: Use Suno v5 specific tags like [Mastering: High Fidelity], [Vocal: ${formData.vocal.join(', ')}], etc.
-                    5. [Lyrics]: Write deeply emotional and poetic lyrics in ${formData.lyricsLanguage === 'ko' ? 'Korean' : 'English'} that match the theme: "${formData.theme}".
-                    6. The output must be ready to copy-paste into Suno AI.
+                    You are the 'NIMO Music Prompt Architect', an AI specializing in Suno AI v5 prompt optimization. Your goal is to generate a high-quality, technically precise English prompt based on user input, designed for maximum Suno algorithm performance.
+
+                    Rules for Prompt Generation:
+                    1.  **Technical Keywords & Hyperrealism:** Translate user selections (genres, moods, eras, etc.) into specific musical terminology. Avoid clichés. Use hyperrealistic, concrete imagery and scenarios for lyrical themes.
+                    2.  **Target Model:** Suno AI v5.
+                    3.  **Output Format:** The final output must be ready to copy-paste into Suno AI, including a Title, Style Prompt, and Lyrics.
+                    4.  **Style Prompt Details:** Incorporate:
+                        *   High-fidelity / Lo-fi (as appropriate)
+                        *   Specific genre and subgenre combinations (e.g., "Modern 2020s Hip-Hop Soul R&B")
+                        *   Mood and emotional texture (e.g., "Soulful", "Atmospheric", "Mournful")
+                        *   Instrumentation details (e.g., "organic woody acoustic guitar fingerstyle", "deep 808 bassline", "detailed string squeaks", "no drums")
+                        *   Vocal characteristics (e.g., "[Vocal: Male, Breathy and Raspy Female]", "[Vocal: Soulful Emotional Texture]")
+                        *   Tempo and Key (e.g., "[Tempo: Mid-Tempo]", "[Key: Minor]")
+                        *   Mixing and Mastering style (e.g., "[Mixing: Intimate, Compressed]", "[Mastering: High Fidelity]")
+                        *   Ambiance and room sound (e.g., "natural room ambiance", "ultra-close-mic intimacy")
+                        *   Production style references (e.g., "2025 Billboard high-end female vocal production")
+                    5.  **Lyrics:** Generate narrative lyrics in English based on the user's theme, focusing on hyperrealistic details and a clear story arc. Ensure lyrics are poetic yet grounded, avoiding generic romantic or emotional clichés. Structure with [Intro], [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge], [Outro].
+                    6.  **Era Integration:** If 'Eras' are selected, integrate them into the style description (e.g., "Vintage 1970s Funk"). If 'Timeless' or 'Futuristic' are selected, adapt accordingly.
                 `;   
 
                 try {
@@ -159,17 +177,63 @@
                         body: JSON.stringify({
                             contents: [{ 
                                 parts: [{ 
-                                    text: `${systemRole}\n\nUser Data JSON: ${JSON.stringify(formData)}\n\nGenerate the ultimate Suno v5 prompt including Title, Style Tags, and Lyrics.` 
+                                    text: `${systemRole}\n\nUser Input JSON: ${JSON.stringify({
+                                        ...formData,
+                                        // Add a thematic keyword based on the user's input for better lyric generation
+                                        themeKeyword: formData.theme.split(' ').slice(-3).join(' ') || 'everyday life' 
+                                    })}` 
                                 }] 
                             }]
                         })
                     });
+                    
                     const data = await res.json();
-                    setResult(data.candidates[0].content.parts[0].text);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                } catch (err) { alert("Gemini API Error. Check your Key."); }
+                    
+                    if (!res.ok || data.error) {
+                        console.error("Generate Error Response:", data);
+                        throw new Error(data.error?.message || `API Error: ${res.status} ${res.statusText}`);
+                    }
+
+                    if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+                        setResult(data.candidates[0].content.parts[0].text);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        throw new Error("No candidates or content found in the API response.");
+                    }
+
+                } catch (err) { 
+                    console.error("Prompt Generation Failed:", err);
+                    alert(`오류가 발생했습니다: ${err.message}\nAPI 키를 확인하고, 선택한 옵션이 올바른지 다시 확인해주세요.`);
+                }
                 finally { setIsGenerating(false); }
             };
+
+            // 결과 텍스트를 복사하는 함수
+            const copyToClipboard = (text, label) => {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert(`${label} 복사 완료!`);
+                }).catch(err => {
+                    console.error('Clipboard copy failed:', err);
+                    alert('복사 실패. 브라우저 설정을 확인해주세요.');
+                });
+            };
+
+            // 결과물 파싱 (제목, 스타일, 가사)
+            const parseResult = (resultText) => {
+                if (!resultText) return { title: '', style: '', lyrics: '' };
+
+                const titleMatch = resultText.match(/Title:\s*(.*)/);
+                const styleMatch = resultText.match(/Style Prompt:\s*([\s\S]*?)(?=Lyrics:|$)/);
+                const lyricsMatch = resultText.match(/Lyrics:\s*([\s\S]*)/);
+
+                return {
+                    title: titleMatch ? titleMatch[1].trim() : 'Untitled',
+                    style: styleMatch ? styleMatch[1].trim() : 'No style prompt generated.',
+                    lyrics: lyricsMatch ? lyricsMatch[1].trim() : 'No lyrics generated.'
+                };
+            };
+
+            const parsedResult = parseResult(result);
 
             return (
                 <div className="min-h-screen pb-20 relative">
@@ -190,10 +254,7 @@
                         {!result ? (
                             <div className="bg-white rounded-[2.5rem] shadow-xl border p-8 md:p-12 animate-fade">
                                 <RenderOptions label="장르 / GENRE" field="genre" list={OPTIONS.genres[language]} selectedValues={formData.genre} onToggle={toggleSelection} onReset={resetOptions} />
-                                
-                                {/* Era (시대) 옵션 추가 */}
                                 <RenderOptions label="시대 / ERA" field="era" list={OPTIONS.eras[language]} selectedValues={formData.era} onToggle={toggleSelection} />
-
                                 <RenderOptions label="무드 / MOOD" field="mood" list={OPTIONS.moods[language]} selectedValues={formData.mood} onToggle={toggleSelection} />
                                 <RenderOptions label="보컬 / VOCAL" field="vocal" list={OPTIONS.vocals[language]} selectedValues={formData.vocal} onToggle={toggleSelection} />
                                 <RenderOptions label="악기 / INSTRUMENTS" field="instruments" list={OPTIONS.instruments[language]} selectedValues={formData.instruments} onToggle={toggleSelection} />
@@ -214,7 +275,7 @@
                                     <div>
                                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 italic">테마 / THEME & STORY</label>
                                         <textarea className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 h-[72px] font-medium text-sm" 
-                                            placeholder="어떤 노래를 만들고 싶으신가요?" 
+                                            placeholder="예: 낡은 집에 남겨진 흔적들, 잊혀진 도시의 소리" 
                                             value={formData.theme}
                                             onChange={e => setFormData(prev => ({...prev, theme: e.target.value}))} />
                                     </div>
@@ -227,22 +288,54 @@
                                 </button>
                             </div>
                         ) : (
-                            <div className="bg-white rounded-[3rem] shadow-2xl border p-8 md:p-12 animate-fade">
+                            <div className="result-card bg-white rounded-[3rem] shadow-2xl border p-8 md:p-12 animate-fade">
                                 <div className="flex justify-between items-center mb-8">
                                     <h2 className="text-2xl font-black italic tracking-tighter text-blue-600">SUCCESS!</h2>
                                     <div className="flex gap-2">
-                                        <button onClick={() => {navigator.clipboard.writeText(result); alert('복사되었습니다!');}} className="bg-blue-50 text-blue-600 px-6 py-3 rounded-2xl font-black text-sm hover:bg-blue-100">COPY</button>
                                         <button onClick={() => setResult(null)} className="bg-gray-100 text-gray-600 px-6 py-3 rounded-2xl font-black text-sm">BACK</button>
                                     </div>
                                 </div>
-                                <pre className="bg-gray-900 text-blue-100 p-8 md:p-12 rounded-[2.5rem] whitespace-pre-wrap font-mono text-sm leading-relaxed border-[12px] border-gray-800 shadow-inner">
-                                    {result}
-                                </pre>
+
+                                {/* 결과물 섹션 */}
+                                <div className="mb-10">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-lg font-bold text-gray-800 mb-3">Song Title</h3>
+                                        <div className="copy-btn-group">
+                                            <button onClick={() => copyToClipboard(parsedResult.title, '곡 제목')} className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-black text-xs hover:bg-blue-100">COPY TITLE</button>
+                                        </div>
+                                    </div>
+                                    <div className="bg-gray-900 text-blue-100 p-5 rounded-xl whitespace-pre-wrap font-mono text-sm leading-relaxed border-2 border-gray-800 shadow-inner">
+                                        {parsedResult.title}
+                                    </div>
+                                </div>
+                                
+                                <div className="mb-10">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-lg font-bold text-gray-800 mb-3">Style Prompt</h3>
+                                        <div className="copy-btn-group">
+                                            <button onClick={() => copyToClipboard(parsedResult.style, '스타일 프롬프트')} className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-black text-xs hover:bg-blue-100">COPY STYLE</button>
+                                        </div>
+                                    </div>
+                                    <div className="bg-gray-900 text-blue-100 p-5 rounded-xl whitespace-pre-wrap font-mono text-sm leading-relaxed border-2 border-gray-800 shadow-inner">
+                                        {parsedResult.style}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-lg font-bold text-gray-800 mb-3">Lyrics</h3>
+                                        <div className="copy-btn-group">
+                                            <button onClick={() => copyToClipboard(parsedResult.lyrics, '가사')} className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-black text-xs hover:bg-blue-100">COPY LYRICS</button>
+                                        </div>
+                                    </div>
+                                    <pre className="bg-gray-900 text-blue-100 p-8 md:p-12 rounded-[2.5rem] whitespace-pre-wrap font-mono text-sm leading-relaxed border-[12px] border-gray-800 shadow-inner">
+                                        {parsedResult.lyrics}
+                                    </pre>
+                                </div>
                             </div>
                         )}
                     </main>
 
-                    {/* --- [도움말 모달] --- */}
                     {showHelp && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-md animate-fade">
                             <div className="bg-white rounded-[3rem] w-full max-w-lg p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
@@ -276,7 +369,6 @@
                         </div>
                     )}
 
-                    {/* --- [API 설정 모달] --- */}
                     {showSettings && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-fade">
                             <div className="bg-white rounded-[3rem] w-full max-w-md p-10 shadow-2xl relative text-left">
@@ -298,7 +390,6 @@
             const [isAuth, setIsAuth] = useState(false);
             const [pw, setPw] = useState('');
             
-            // 간단한 Enter 키 이벤트 핸들러 추가
             const handleKeyDown = (e) => {
                 if (e.key === 'Enter' && pw === 'nimo123') setIsAuth(true);
             };
