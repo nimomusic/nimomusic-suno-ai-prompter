@@ -16,16 +16,71 @@
         .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         button:focus { outline: none; }
+        /* 스크롤바 커스텀 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useCallback } = React;
 
         const encryptKey = (key) => btoa(key).split('').reverse().join('');
         const decryptKey = (enc) => atob(enc.split('').reverse().join(''));
+
+        // 데이터 옵션 정의 (Eras 추가됨)
+        const OPTIONS = {
+            eras: { 
+                ko: ['중세', '르네상스', '바로크', '고전주의', '낭만주의', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s', '2010s', '2020s', '미래적', '시대 무관'], 
+                en: ['Medieval', 'Renaissance', 'Baroque', 'Classical', 'Romantic', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s', '2010s', '2020s', 'Futuristic', 'Timeless'] 
+            },
+            genres: {
+                ko: ['어쿠스틱 발라드', '팝', '록', '일렉트로닉', '힙합', 'R&B', '재즈', '클래식', '포크', '인디', '컨트리', '블루스', '레게', '메탈', '펑크', '디스코', '소울', 'EDM', '하우스', '테크노', '트랜스', '덥스텝', '드럼 앤 베이스', '트랩', '보사노바', '플라멩코', '탱고', 'K-POP', 'J-POP', '시티팝', '신스팝', '뉴에이지', '앰비언트', '칠아웃', '로파이', '포스트록', '슈게이징', '인더스트리얼', '고스', '이모', '그런지', '펑크록', '하드록', '프로그레시브록'],
+                en: ['Acoustic Ballad', 'Pop', 'Rock', 'Electronic', 'Hip-Hop', 'R&B', 'Jazz', 'Classical', 'Folk', 'Indie', 'Country', 'Blues', 'Reggae', 'Metal', 'Punk', 'Disco', 'Soul', 'EDM', 'House', 'Techno', 'Trance', 'Dubstep', 'Drum and Bass', 'Trap', 'Bossa Nova', 'Flamenco', 'Tango', 'K-POP', 'J-POP', 'City Pop', 'Synth-pop', 'New Age', 'Ambient', 'Chillout', 'Lo-fi', 'Post-rock', 'Shoegaze', 'Industrial', 'Goth', 'Emo', 'Grunge', 'Punk Rock', 'Hard Rock', 'Progressive Rock']
+            },
+            moods: {
+                ko: ['감성적인', '경쾌한', '우울한', '에너제틱', '로맨틱', '평화로운', '긴장감 있는', '희망적인', '신비로운', '강렬한', '따뜻한', '차가운', '몽환적인', '어두운', '밝은', '슬픈', '화난', '섹시한', '유쾌한', '멜랑콜리한', '향수를 자극하는', '웅장한', '섬세한', '거친', '부드러운', '극적인', '서정적인', '애절한', '장난스러운', '진지한', '반항적인', '고요한', '격정적인', '황홀한'],
+                en: ['Emotional', 'Upbeat', 'Melancholic', 'Energetic', 'Romantic', 'Peaceful', 'Tense', 'Hopeful', 'Mysterious', 'Intense', 'Warm', 'Cold', 'Dreamy', 'Dark', 'Bright', 'Sad', 'Angry', 'Sexy', 'Cheerful', 'Melancholy', 'Nostalgic', 'Epic', 'Delicate', 'Rough', 'Smooth', 'Dramatic', 'Lyrical', 'Heartbreaking', 'Playful', 'Serious', 'Rebellious', 'Serene', 'Passionate', 'Euphoric']
+            },
+            vocals: {
+                ko: ['남성 보컬', '여성 보컬', '남성 듀엣', '여성 듀엣', '남녀 듀엣', '혼성 합창', '남성 합창', '여성 합창', '어린이 합창', '아카펠라', '랩', '스포큰 워드', '보컬 없음', '허밍', '휘슬링', '비브라토', '팔세토', '하모니', '백그라운드 보컬'],
+                en: ['Male Vocal', 'Female Vocal', 'Male Duet', 'Female Duet', 'Mixed Duet', 'Mixed Choir', 'Male Choir', 'Female Choir', 'Children Choir', 'A Cappella', 'Rap', 'Spoken Word', 'No Vocal', 'Humming', 'Whistling', 'Vibrato', 'Falsetto', 'Harmony', 'Background Vocal']
+            },
+            instruments: {
+                ko: ['어쿠스틱 기타', '일렉트릭 기타', '베이스 기타', '피아노', '신시사이저', '드럼', '일렉트로닉 드럼', '첼로', '바이올린', '비올라', '더블베이스', '하프', '플루트', '색소폰', '트럼펫', '트롬본', '클라리넷', '하모니카', '아코디언', '밴조', '만돌린', '우쿨렐레', '타블라', '봉고', '콩가', '마림바', '오르간', '스트링 섹션', '브라스 섹션', '퍼커션', '808 베이스', '샘플링', '루프', '패드 사운드'],
+                en: ['acoustic guitar', 'electric guitar', 'bass guitar', 'piano', 'synthesizer', 'drums', 'electronic drums', 'cello', 'violin', 'viola', 'double bass', 'harp', 'flute', 'saxophone', 'trumpet', 'trombone', 'clarinet', 'harmonica', 'accordion', 'banjo', 'mandolin', 'ukulele', 'tabla', 'bongo', 'conga', 'marimba', 'organ', 'string section', 'brass section', 'percussion', '808 bass', 'sampling', 'loops', 'pad sounds']
+            },
+            mixingStyles: {
+                ko: ['인티메이트', '시네마틱', '하이파이', '로파이', '빈티지', '모던', '로우', '폴리시', '미니멀리스트', '레이어드', '앰비언트', '컴프레스드', '리버브 헤비', '드라이', '스테레오 와이드', '모노', '애널로그', '디지털', '글리치', '디스토션', '클린', '크런치', '페이저', '코러스', '딜레이', '에코', 'A/B 스테레오', '프로덕션', '실험적', '메인스트림'],
+                en: ['intimate', 'cinematic', 'high-fidelity', 'lo-fi', 'vintage', 'modern', 'raw', 'polished', 'minimalist', 'layered', 'ambient', 'compressed', 'reverb heavy', 'dry', 'stereo wide', 'mono', 'analog', 'digital', 'glitch', 'distortion', 'clean', 'crunch', 'phaser', 'chorus', 'delay', 'echo', 'A/B stereo', 'production', 'experimental', 'mainstream']
+            }
+        };
+
+        // RenderOptions 컴포넌트 분리 (최적화)
+        const RenderOptions = React.memo(({ label, field, list, selectedValues, onToggle, onReset }) => (
+            <div className="mb-10">
+                <div className="flex justify-between items-center mb-4">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">{label}</label>
+                    {onReset && (
+                        <button onClick={onReset} className="text-[10px] font-black text-red-400 hover:text-red-600 border border-red-100 px-3 py-1 rounded-full transition-all bg-red-50">
+                            <i className="fa-solid fa-rotate-left mr-1"></i> RESET ALL
+                        </button>
+                    )}
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                    {list.map(val => (
+                        <button key={val} onClick={(e) => onToggle(e, field, val)}
+                            className={`px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all border ${selectedValues.includes(val) ? 'btn-active border-blue-600 scale-95' : 'bg-white text-gray-400 border-gray-100 hover:border-blue-200'}`}>
+                            {val}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        ));
 
         const SunoPromptGenerator = () => {
             const [language, setLanguage] = useState('ko');
@@ -36,50 +91,28 @@
             const [apiKey, setApiKey] = useState('');
             const [testStatus, setTestStatus] = useState('idle');
             
+            // eras 추가된 초기 상태
             const initialFormState = {
-                genre: [], mood: [], vocal: [], instruments: [], mixing: [], theme: '', lyricsLanguage: 'ko'
+                genre: [], era: [], mood: [], vocal: [], instruments: [], mixing: [], theme: '', lyricsLanguage: 'ko'
             };
             const [formData, setFormData] = useState(initialFormState);
-
-            const options = {
-                genres: {
-                    ko: ['어쿠스틱 발라드', '팝', '록', '일렉트로닉', '힙합', 'R&B', '재즈', '클래식', '포크', '인디', '컨트리', '블루스', '레게', '메탈', '펑크', '디스코', '소울', 'EDM', '하우스', '테크노', '트랜스', '덥스텝', '드럼 앤 베이스', '트랩', '보사노바', '플라멩코', '탱고', 'K-POP', 'J-POP', '시티팝', '신스팝', '뉴에이지', '앰비언트', '칠아웃', '로파이', '포스트록', '슈게이징', '인더스트리얼', '고스', '이모', '그런지', '펑크록', '하드록', '프로그레시브록'],
-                    en: ['Acoustic Ballad', 'Pop', 'Rock', 'Electronic', 'Hip-Hop', 'R&B', 'Jazz', 'Classical', 'Folk', 'Indie', 'Country', 'Blues', 'Reggae', 'Metal', 'Punk', 'Disco', 'Soul', 'EDM', 'House', 'Techno', 'Trance', 'Dubstep', 'Drum and Bass', 'Trap', 'Bossa Nova', 'Flamenco', 'Tango', 'K-POP', 'J-POP', 'City Pop', 'Synth-pop', 'New Age', 'Ambient', 'Chillout', 'Lo-fi', 'Post-rock', 'Shoegaze', 'Industrial', 'Goth', 'Emo', 'Grunge', 'Punk Rock', 'Hard Rock', 'Progressive Rock']
-                },
-                moods: {
-                    ko: ['감성적인', '경쾌한', '우울한', '에너제틱', '로맨틱', '평화로운', '긴장감 있는', '희망적인', '신비로운', '강렬한', '따뜻한', '차가운', '몽환적인', '어두운', '밝은', '슬픈', '화난', '섹시한', '유쾌한', '멜랑콜리한', '향수를 자극하는', '웅장한', '섬세한', '거친', '부드러운', '극적인', '서정적인', '애절한', '장난스러운', '진지한', '반항적인', '고요한', '격정적인', '황홀한'],
-                    en: ['Emotional', 'Upbeat', 'Melancholic', 'Energetic', 'Romantic', 'Peaceful', 'Tense', 'Hopeful', 'Mysterious', 'Intense', 'Warm', 'Cold', 'Dreamy', 'Dark', 'Bright', 'Sad', 'Angry', 'Sexy', 'Cheerful', 'Melancholy', 'Nostalgic', 'Epic', 'Delicate', 'Rough', 'Smooth', 'Dramatic', 'Lyrical', 'Heartbreaking', 'Playful', 'Serious', 'Rebellious', 'Serene', 'Passionate', 'Euphoric']
-                },
-                vocals: {
-                    ko: ['남성 보컬', '여성 보컬', '남성 듀엣', '여성 듀엣', '남녀 듀엣', '혼성 합창', '남성 합창', '여성 합창', '어린이 합창', '아카펠라', '랩', '스포큰 워드', '보컬 없음', '허밍', '휘슬링', '비브라토', '팔세토', '하모니', '백그라운드 보컬'],
-                    en: ['Male Vocal', 'Female Vocal', 'Male Duet', 'Female Duet', 'Mixed Duet', 'Mixed Choir', 'Male Choir', 'Female Choir', 'Children Choir', 'A Cappella', 'Rap', 'Spoken Word', 'No Vocal', 'Humming', 'Whistling', 'Vibrato', 'Falsetto', 'Harmony', 'Background Vocal']
-                },
-                instruments: {
-                    ko: ['어쿠스틱 기타', '일렉트릭 기타', '베이스 기타', '피아노', '신시사이저', '드럼', '일렉트로닉 드럼', '첼로', '바이올린', '비올라', '더블베이스', '하프', '플루트', '색소폰', '트럼펫', '트롬본', '클라리넷', '하모니카', '아코디언', '밴조', '만돌린', '우쿨렐레', '타블라', '봉고', '콩가', '마림바', '오르간', '스트링 섹션', '브라스 섹션', '퍼커션', '808 베이스', '샘플링', '루프', '패드 사운드'],
-                    en: ['acoustic guitar', 'electric guitar', 'bass guitar', 'piano', 'synthesizer', 'drums', 'electronic drums', 'cello', 'violin', 'viola', 'double bass', 'harp', 'flute', 'saxophone', 'trumpet', 'trombone', 'clarinet', 'harmonica', 'accordion', 'banjo', 'mandolin', 'ukulele', 'tabla', 'bongo', 'conga', 'marimba', 'organ', 'string section', 'brass section', 'percussion', '808 bass', 'sampling', 'loops', 'pad sounds']
-                },
-                mixingStyles: {
-                    ko: ['인티메이트', '시네마틱', '하이파이', '로파이', '빈티지', '모던', '로우', '폴리시', '미니멀리스트', '레이어드', '앰비언트', '컴프레스드', '리버브 헤비', '드라이', '스테레오 와이드', '모노', '애널로그', '디지털', '글리치', '디스토션', '클린', '크런치', '페이저', '코러스', '딜레이', '에코', 'A/B 스테레오', '프로덕션', '실험적', '메인스트림'],
-                    en: ['intimate', 'cinematic', 'high-fidelity', 'lo-fi', 'vintage', 'modern', 'raw', 'polished', 'minimalist', 'layered', 'ambient', 'compressed', 'reverb heavy', 'dry', 'stereo wide', 'mono', 'analog', 'digital', 'glitch', 'distortion', 'clean', 'crunch', 'phaser', 'chorus', 'delay', 'echo', 'A/B stereo', 'production', 'experimental', 'mainstream']
-                }
-            };
 
             useEffect(() => {
                 const saved = localStorage.getItem('_nimo_gemini_key');
                 if (saved) setApiKey(decryptKey(saved));
             }, []);
 
-            const resetOptions = (e) => {
+            const resetOptions = useCallback((e) => {
                 e.preventDefault();
                 setFormData(initialFormState);
-            };
+            }, []);
 
-            const toggleSelection = (e, field, value) => {
+            const toggleSelection = useCallback((e, field, value) => {
                 e.preventDefault();
                 setFormData(prev => ({
                     ...prev, [field]: prev[field].includes(value) ? prev[field].filter(v => v !== value) : [...prev[field], value]
                 }));
-            };
+            }, []);
 
             const saveAndTestKey = async () => {
                 setTestStatus('testing');
@@ -105,17 +138,18 @@
                 setIsGenerating(true);
                 const realKey = decryptKey(savedKey);
 
-                // AI에게 부여할 마스터 페르소나 지시문 (Prompt Engineering)
+                // Prompt Engineering 강화 (Era 정보 포함)
                 const systemRole = ` 
                     You are the 'NIMO Music Prompt Architect', an expert in Suno AI v5.
                     Your mission is to transform raw user selections into a high-end music production blueprint.
                 
                      Follow these rules:
-                    1. [Style Keywords]: Combine genres and moods into professional music production terminology (e.g., instead of 'Sad', use 'Melancholic minor key, 68bpm').
+                    1. [Style Keywords]: Combine Genres (${formData.genre.join(', ')}), Eras (${formData.era.join(', ')}), and Moods (${formData.mood.join(', ')}) into professional music production terminology.
                     2. [Structure]: Define a clear song structure: [Intro], [Verse], [Chorus], [Bridge], [Outro].
-                    3. [Instrumentation]: Balance the selected instruments to ensure a professional mix.
-                    4. [Metatags]: Use Suno v4 specific tags like [Mastering: High Fidelity], [Vocal: Expressive], etc.
+                    3. [Instrumentation]: Balance the selected instruments: ${formData.instruments.join(', ')}.
+                    4. [Metatags]: Use Suno v5 specific tags like [Mastering: High Fidelity], [Vocal: ${formData.vocal.join(', ')}], etc.
                     5. [Lyrics]: Write deeply emotional and poetic lyrics in ${formData.lyricsLanguage === 'ko' ? 'Korean' : 'English'} that match the theme: "${formData.theme}".
+                    6. The output must be ready to copy-paste into Suno AI.
                 `;   
 
                 try {
@@ -125,7 +159,7 @@
                         body: JSON.stringify({
                             contents: [{ 
                                 parts: [{ 
-                                    text: `${systemRole}\n\nUser Data: ${JSON.stringify(formData)}\n\nGenerate the ultimate Suno v4 prompt including Title, Style, and Lyrics.` 
+                                    text: `${systemRole}\n\nUser Data JSON: ${JSON.stringify(formData)}\n\nGenerate the ultimate Suno v5 prompt including Title, Style Tags, and Lyrics.` 
                                 }] 
                             }]
                         })
@@ -133,30 +167,9 @@
                     const data = await res.json();
                     setResult(data.candidates[0].content.parts[0].text);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
-                } catch (err) { alert("Gemini 3 Flash API Error. Check your Key."); }
+                } catch (err) { alert("Gemini API Error. Check your Key."); }
                 finally { setIsGenerating(false); }
             };
-
-            const RenderOptions = ({ label, field, list }) => (
-                <div className="mb-10">
-                    <div className="flex justify-between items-center mb-4">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">{label}</label>
-                        {field === 'genre' && (
-                            <button onClick={resetOptions} className="text-[10px] font-black text-red-400 hover:text-red-600 border border-red-100 px-3 py-1 rounded-full transition-all bg-red-50">
-                                <i className="fa-solid fa-rotate-left mr-1"></i> RESET ALL
-                            </button>
-                        )}
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                        {list.map(val => (
-                            <button key={val} onClick={(e) => toggleSelection(e, field, val)}
-                                className={`px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all border ${formData[field].includes(val) ? 'btn-active border-blue-600 scale-95' : 'bg-white text-gray-400 border-gray-100 hover:border-blue-200'}`}>
-                                {val}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            );
 
             return (
                 <div className="min-h-screen pb-20 relative">
@@ -176,18 +189,22 @@
                     <main className="max-w-6xl mx-auto px-6 py-10">
                         {!result ? (
                             <div className="bg-white rounded-[2.5rem] shadow-xl border p-8 md:p-12 animate-fade">
-                                <RenderOptions label="장르 / GENRE" field="genre" list={options.genres[language]} />
-                                <RenderOptions label="무드 / MOOD" field="mood" list={options.moods[language]} />
-                                <RenderOptions label="보컬 / VOCAL" field="vocal" list={options.vocals[language]} />
-                                <RenderOptions label="악기 / INSTRUMENTS" field="instruments" list={options.instruments[language]} />
-                                <RenderOptions label="믹싱 / MIXING" field="mixing" list={options.mixingStyles[language]} />
+                                <RenderOptions label="장르 / GENRE" field="genre" list={OPTIONS.genres[language]} selectedValues={formData.genre} onToggle={toggleSelection} onReset={resetOptions} />
+                                
+                                {/* Era (시대) 옵션 추가 */}
+                                <RenderOptions label="시대 / ERA" field="era" list={OPTIONS.eras[language]} selectedValues={formData.era} onToggle={toggleSelection} />
+
+                                <RenderOptions label="무드 / MOOD" field="mood" list={OPTIONS.moods[language]} selectedValues={formData.mood} onToggle={toggleSelection} />
+                                <RenderOptions label="보컬 / VOCAL" field="vocal" list={OPTIONS.vocals[language]} selectedValues={formData.vocal} onToggle={toggleSelection} />
+                                <RenderOptions label="악기 / INSTRUMENTS" field="instruments" list={OPTIONS.instruments[language]} selectedValues={formData.instruments} onToggle={toggleSelection} />
+                                <RenderOptions label="믹싱 / MIXING" field="mixing" list={OPTIONS.mixingStyles[language]} selectedValues={formData.mixing} onToggle={toggleSelection} />
 
                                 <div className="grid md:grid-cols-2 gap-8 mb-12 border-t pt-10">
                                     <div>
                                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 italic">가사 언어 / LYRICS LANGUAGE</label>
                                         <div className="flex gap-2">
                                             {['ko', 'en'].map(l => (
-                                                <button key={l} onClick={(e) => {e.preventDefault(); setFormData({...formData, lyricsLanguage: l})}}
+                                                <button key={l} onClick={(e) => {e.preventDefault(); setFormData(prev => ({...prev, lyricsLanguage: l}))}}
                                                     className={`flex-1 py-4 rounded-2xl font-black text-xs transition-all border ${formData.lyricsLanguage === l ? 'btn-active border-blue-600' : 'bg-gray-50 text-gray-400 border-gray-100'}`}>
                                                     {l === 'ko' ? 'KOREAN' : 'ENGLISH'}
                                                 </button>
@@ -197,7 +214,9 @@
                                     <div>
                                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 italic">테마 / THEME & STORY</label>
                                         <textarea className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 h-[72px] font-medium text-sm" 
-                                            placeholder="어떤 노래를 만들고 싶으신가요?" onChange={e => setFormData({...formData, theme: e.target.value})} />
+                                            placeholder="어떤 노래를 만들고 싶으신가요?" 
+                                            value={formData.theme}
+                                            onChange={e => setFormData(prev => ({...prev, theme: e.target.value}))} />
                                     </div>
                                 </div>
 
@@ -223,7 +242,7 @@
                         )}
                     </main>
 
-                    {/* --- [도움말 모달 - 복구 완료] --- */}
+                    {/* --- [도움말 모달] --- */}
                     {showHelp && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-md animate-fade">
                             <div className="bg-white rounded-[3rem] w-full max-w-lg p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
@@ -278,11 +297,17 @@
         const App = () => {
             const [isAuth, setIsAuth] = useState(false);
             const [pw, setPw] = useState('');
+            
+            // 간단한 Enter 키 이벤트 핸들러 추가
+            const handleKeyDown = (e) => {
+                if (e.key === 'Enter' && pw === 'nimo123') setIsAuth(true);
+            };
+
             if (!isAuth) return (
                 <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-6">
                     <div className="max-w-md w-full space-y-10 text-center animate-fade">
                         <h1 className="text-6xl font-black italic tracking-tighter">NIMO MUSIC</h1>
-                        <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="PASSWORD" 
+                        <input type="password" value={pw} onChange={e => setPw(e.target.value)} onKeyDown={handleKeyDown} placeholder="PASSWORD" 
                             className="w-full bg-white/10 border border-white/20 rounded-2xl py-6 text-center font-bold tracking-[1em] outline-none focus:border-blue-500" />
                         <button onClick={() => pw === 'nimo123' && setIsAuth(true)} className="w-full bg-white text-black py-6 rounded-2xl font-black text-lg hover:bg-blue-500 hover:text-white transition-all">ENTER</button>
                     </div>
