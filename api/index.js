@@ -38,18 +38,36 @@ app.post('/api/generate', async (req, res) => {
             [STRICT VOCAL RULES]
             ${isNoVocal ? 
               `1. VOCAL STATUS: 'No Vocal(Instrumental)' is selected. DO NOT write any lyrics. Provide structural layout tags like [Drum Break], [Guitar Solo], etc.` :
-              `1. LYRICS LANGUAGE: MUST be in **${getLangName()}** only.`
+              `2. LYRICS LANGUAGE: MUST be in **${getLangName()}** only.`
             }
-            ${isDuet ? `2. DUET FORMATTING: Distinguish singers with tags like [Male], [Female], [Both], etc.` : ''}
-            [STRUCTURE] - Benchmark a real song similar to "${theme}". DO NOT generate [Intro] or [Outro].
-            [PROMPT] - STYLE: Construct 5-layer tech tags. CLEAN: Plain text only, no asterisks.
+            ${isDuet ? `3. DUET FORMATTING: Distinguish singers with tags like [Male], [Female], [Both], etc.` : ''}
+
+            [NIMO PLATINUM HIT-MAKING WORKFLOW]
+            To produce the ultimate masterpiece based on the user's input, strictly execute this 5-stage production matrix:
+            STAGE 1. A&R CONCEPT DEFINITION: Analyze the "Theme" and "Context" to define the emotional core, target demographic, and commercial vibe.
+            STAGE 2. STRUCTURAL BLUEPRINTING: Engineer dynamic tension and release (e.g., Verse, Pre-Chorus, Drop, Bridge) to maximize listener retention.
+            STAGE 3. LYRICAL ENGINEERING & PROSODY: Craft evocative lyrics with sticky hooks. Ensure phonetic harmony and deep cultural resonance.
+            STAGE 4. SONIC ARCHITECTURE (ARRANGEMENT): Design a cutting-edge sound palette using advanced instrumentation, sub-bass layers, and rhythmic textures.
+            STAGE 5. PERFORMANCE CALIBRATION: Direct the AI's rendering by specifying vocal tones, emotional intensity, and dynamic shifts within the song.
+
+            [REFERENCE & EXECUTION]
+            1. REFERENCE ANALYSIS: Instead of generic generation, recall the structure and vibe of a real global hit song similar to "${theme}". Extract its "Hit DNA" (Chord progression, Tempo, Groove).
+            2. STRUCTURE OPTIMIZATION: Based on the reference, build the song body.
+               **CRITICAL RULE**: DO NOT generate [Intro] or [Outro] tags in the lyrics section. Let the Style Prompt drive the musical intro/outro naturally. Focus on the core content (Verse/Chorus/Bridge).
+            3. STYLE PROMPT (SONIC FINGERPRINT): Construct a high-fidelity "5-Layer Tag" system:
+               Layer 1: Main Genre & Sub-genre
+               Layer 2: Key Instruments & Sound Design Elements
+               Layer 3: Mood & Emotional Atmosphere
+               Layer 4: Tempo (BPM) & Rhythm Style
+               Layer 5: Production Quality Tags (e.g., High Fidelity, Billboard Sound)
+               *CONSTRAINT*: CLEAN plain text only. No asterisks.
+
             INPUT: - Theme: "${theme}" - Context: ${JSON.stringify(formData)}
             OUTPUT FORMAT:
             Title: (Creative Title)
             Style Prompt: (The 5-layer English tags)
-            Lyrics: (The full lyrics)
+            Lyrics: (The full lyrics with structural tags)
         `;
-
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -64,5 +82,6 @@ app.post('/api/generate', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 module.exports = app;
