@@ -324,11 +324,21 @@
             };
 
             if (!isAuth) return (
-                <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-6">
+                <div 
+                    className="min-h-screen flex flex-col items-center justify-center text-white p-6"
+                    style={{
+                        // 아래 url('') 안에 원하는 이미지 주소를 넣으세요
+                        backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2070&auto=format&fit=crop')",
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundColor: 'black' // 이미지가 로딩 안될 때를 대비한 배경색
+                    }}
+                >
                     <h1 className="text-6xl font-black italic mb-10 tracking-tighter">NIMO MUSIC</h1>
                     <div className="w-full max-w-xs space-y-4">
                         <input type="password" value={pw} onChange={e => setPw(e.target.value)} onKeyDown={e => e.key === 'Enter' && checkLogin()} placeholder="PASSWORD" 
-                            className="w-full bg-white/10 border border-white/20 p-6 rounded-2xl text-center font-bold tracking-[0.5em] outline-none focus:border-blue-500" />
+                            className="w-full bg-white/10 border border-white/20 p-6 rounded-2xl text-center font-bold tracking-[0.5em] outline-none focus:border-blue-500 backdrop-blur-sm" />
                         <button onClick={checkLogin} className="w-full bg-white text-black py-6 rounded-2xl font-black hover:bg-blue-600 hover:text-white transition-all uppercase">ENTER</button>
                     </div>
                 </div>
@@ -341,5 +351,6 @@
 </body>
 
 </html>
+
 
 
