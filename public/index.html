@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIMO MUSIC - Professional AI Music Engine</title>
+    <!-- 라이브러리 로드 -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+        .btn-active { background: #2563eb !important; color: white !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+        .label-text { font-size: 16px; font-weight: 900; color: #000; text-transform: uppercase; letter-spacing: 0.05em; font-style: italic; }
+        .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* 커스텀 스위치 스타일 */
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e2e8f0; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2563eb; }
+        input:checked + .slider:before { transform: translateX(22px); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- 보안 스크립트: 소스보기 및 우클릭 방지 -->
+    <script>
+        document.oncontextmenu = () => false;
+        document.onkeydown = (e) => {
+            if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || (e.ctrlKey && e.keyCode === 85)) {
+                return false;
+            }
+        };
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
+
+        // Vercel 서버리스 함수 경로
+        const API_BASE_URL = "/api";
+
+        const encryptKey = (key) => btoa(key).split('').reverse().join('');
+        const decryptKey = (enc) => atob(enc.split('').reverse().join(''));
+
+        const OPTIONS = {
+            eras: { 
+                ko: ['중세', '르네상스', '바로크', '고전주의', '낭만주의', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s', '2010s', '2020s', '미래적', '시대 무관'], 
+                en: ['Medieval', 'Renaissance', 'Baroque', 'Classical', 'Romantic', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s', '2010s', '2020s', 'Futuristic', 'Timeless'] 
+            },
+            genres: {
+                ko: ['발라드', '팝', '록', '일렉트로닉', '힙합', 'R&B', '재즈', '클래식', '포크', '인디', '트로트'],
+                en: ['Ballad', 'Pop', 'Rock', 'Electronic', 'Hip-Hop', 'R&B', 'Jazz', 'Classical', 'Folk', 'Indie', 'K-trot']
+            },
+            moods: {
+                ko: ['감성적인', '경쾌한', '우울한', '에너제틱', '로맨틱', '평화로운', '긴장감 있는', '희망적인'],
+                en: ['Emotional', 'Upbeat', 'Melancholic', 'Energetic', 'Romantic', 'Peaceful', 'Tense', 'Hopeful']
+            },
+            vocals: {
+                ko: ['남성 보컬', '여성 보컬', '남녀 듀엣', '혼성 합창', '랩', '보컬 없음'],
+                en: ['Male Vocal', 'Female Vocal', 'Mixed Duet', 'Mixed Choir', 'Rap', 'No Vocal']
+            },
+            instruments: {
+                ko: ['어쿠스틱 기타', '일렉트릭 기타', '피아노', '신시사이저', '드럼', '첼로', '바이올린'],
+                en: ['acoustic guitar', 'electric guitar', 'piano', 'synthesizer', 'drums', 'cello', 'violin']
+            },
+            mixingStyles: {
+                ko: ['인티밋', '시네마틱', '하이파이', '로파이', '빈티지', '모던'],
+                en: ['intimate', 'cinematic', 'high-fidelity', 'lo-fi', 'vintage', 'modern']
+            }
+        };
+
+        const RenderOptions = React.memo(({ label, field, list, selectedValues, onToggle, isAuto, onAutoToggle }) => (
+            <div className="mb-10">
+                <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-4">
+                        <label className="label-text">{label}</label>
+                        {onAutoToggle && (
+                            <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
+                                <span className="text-[11px] font-black text-gray-500 uppercase">Auto</span>
+                                <label className="switch">
+                                    <input type="checkbox" checked={isAuto} onChange={onAutoToggle} />
+                                    <span className="slider"></span>
+                                </label>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                {!isAuto ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 animate-fade">
+                        {list.map(val => (
+                            <button key={val} onClick={(e) => onToggle(e, field, val)}
+                                className={`px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all border ${selectedValues.includes(val) ? 'btn-active border-blue-600' : 'bg-white text-gray-400 border-gray-100'}`}>
+                                {val}
+                            </button>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="py-6 bg-blue-50/30 border border-dashed border-blue-100 rounded-2xl text-[12px] font-bold text-blue-400 text-center italic">
+                        <i className="fa-solid fa-robot mr-2"></i> AI Auto Optimization Mode
+                    </div>
+                )}
+            </div>
+        ));
+
+        const SunoPromptGenerator = ({ userPw }) => {
+            const [language, setLanguage] = useState('ko');
+            const [isGenerating, setIsGenerating] = useState(false);
+            const [result, setResult] = useState(null);
+            const [showSettings, setShowSettings] = useState(false);
+            const [apiKey, setApiKey] = useState('');
+            
+            const [isAutoInstruments, setIsAutoInstruments] = useState(true);
+            const [isAutoMixing, setIsAutoMixing] = useState(true);
+
+            const [formData, setFormData] = useState({
+                genre: [], era: [], mood: [], vocal: [], instruments: [], mixing: [], theme: '', lyricsLanguage: 'ko'
+            });
+
+            useEffect(() => {
+                const saved = localStorage.getItem('_nimo_gemini_key');
+                if (saved) setApiKey(decryptKey(saved));
+            }, []);
+
+            const toggleSelection = useCallback((e, field, value) => {
+                e.preventDefault();
+                setFormData(prev => ({
+                    ...prev, [field]: prev[field].includes(value) ? prev[field].filter(v => v !== value) : [...prev[field], value]
+                }));
+            }, []);
+
+            const generatePrompt = async () => {
+                const savedKey = localStorage.getItem('_nimo_gemini_key');
+                if (!savedKey) { setShowSettings(true); return; }
+                if (!formData.theme) { alert("테마를 입력하세요."); return; }
+
+                setIsGenerating(true);
+                try {
+                    // 서버(/api/generate)로 요청 전송
+                    const res = await fetch(`${API_BASE_URL}/generate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            theme: formData.theme,
+                            formData: formData,
+                            apiKey: decryptKey(savedKey),
+                            lyricsLanguage: formData.lyricsLanguage,
+                            password: userPw // 입력한 비번을 함께 보내 서버에서 2차 검증
+                        })
+                    });
+                    
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || "API Error");
+                    
+                    setResult(data.result.replace(/\*/g, '').replace(/#/g, ''));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } catch (err) { 
+                    alert(`오류: ${err.message}`);
+                } finally { setIsGenerating(false); }
+            };
+
+            const parseResult = (text) => {
+                const title = text.match(/Title:\s*(.*)/i)?.[1] || 'Untitled';
+                const style = text.match(/Style Prompt:\s*([\s\S]*?)(?=Lyrics:|$)/i)?.[1] || '';
+                const lyrics = text.match(/Lyrics:\s*([\s\S]*)/i)?.[1] || '';
+                return { title, style, lyrics };
+            };
+
+            const p = result ? parseResult(result) : null;
+
+            return (
+                <div className="min-h-screen pb-20">
+                    <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-40 px-6 py-4 flex justify-between items-center">
+                        <div className="font-black italic text-xl text-blue-600 tracking-tighter">NIMO MUSIC</div>
+                        <div className="flex gap-2">
+                            <button onClick={() => setShowSettings(true)} className="px-4 py-2 rounded-full bg-gray-100 text-[11px] font-black">API KEY</button>
+                            <button onClick={() => setLanguage(l => l === 'ko' ? 'en' : 'ko')} className="w-10 h-10 rounded-full bg-black text-white text-[10px] font-black">{language.toUpperCase()}</button>
+                        </div>
+                    </header>
+
+                    <main className="max-w-5xl mx-auto px-6 py-10">
+                        {!result ? (
+                            <div className="bg-white rounded-[2.5rem] shadow-xl border p-8 animate-fade">
+                                <RenderOptions label="GENRE" field="genre" list={OPTIONS.genres[language]} selectedValues={formData.genre} onToggle={toggleSelection} />
+                                <RenderOptions label="VOCAL" field="vocal" list={OPTIONS.vocals[language]} selectedValues={formData.vocal} onToggle={toggleSelection} />
+                                <RenderOptions label="INSTRUMENTS" field="instruments" list={OPTIONS.instruments[language]} selectedValues={formData.instruments} onToggle={toggleSelection} isAuto={isAutoInstruments} onAutoToggle={() => setIsAutoInstruments(!isAutoInstruments)} />
+                                
+                                <div className="grid md:grid-cols-2 gap-8 mt-10 border-t pt-10">
+                                    <div>
+                                        <label className="block label-text mb-4">LYRICS LANGUAGE</label>
+                                        <div className="flex gap-2">
+                                            {['ko', 'en', 'jp'].map(l => (
+                                                <button key={l} onClick={() => setFormData(prev => ({...prev, lyricsLanguage: l}))}
+                                                    className={`flex-1 py-4 rounded-2xl font-black text-xs border ${formData.lyricsLanguage === l ? 'btn-active' : 'bg-gray-50 text-gray-400'}`}>
+                                                    {l.toUpperCase()}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block label-text mb-4">THEME & STORY</label>
+                                        <textarea className="w-full p-5 bg-gray-50 border rounded-2xl h-[80px] text-sm font-bold" 
+                                            placeholder="이야기를 적어주세요..." 
+                                            onChange={e => setFormData(prev => ({...prev, theme: e.target.value}))} />
+                                    </div>
+                                </div>
+
+                                <button onClick={generatePrompt} disabled={isGenerating} 
+                                    className="w-full mt-10 py-6 bg-black text-white rounded-[2rem] font-black text-xl hover:bg-blue-600 transition-all shadow-xl disabled:opacity-50">
+                                    {isGenerating ? 'ANALYZING...' : 'GENERATE PROMPT'}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-[3rem] shadow-2xl border p-8 animate-fade">
+                                <div className="flex justify-between items-center mb-8 border-b pb-6">
+                                    <h2 className="text-2xl font-black italic text-blue-600 uppercase">RESULT</h2>
+                                    <button onClick={() => setResult(null)} className="bg-gray-100 px-6 py-2 rounded-full font-black text-xs">RESTART</button>
+                                </div>
+                                <div className="space-y-6">
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 block mb-2">STYLE PROMPT</label>
+                                        <div className="bg-gray-900 text-blue-100 p-6 rounded-2xl font-mono text-sm border-2 border-gray-800 shadow-inner">
+                                            {p.style}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 block mb-2">LYRICS</label>
+                                        <div className="bg-gray-50 text-gray-800 p-6 rounded-2xl font-medium text-sm leading-relaxed whitespace-pre-wrap border">
+                                            {p.lyrics}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    {showSettings && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+                            <div className="bg-white rounded-[2rem] w-full max-w-sm p-10 relative">
+                                <h3 className="text-xl font-black mb-6 uppercase">Gemini API Key</h3>
+                                <input type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="AIzaSy..." 
+                                    className="w-full bg-gray-50 border rounded-2xl py-4 px-6 mb-6 outline-none font-mono" />
+                                <button onClick={() => { localStorage.setItem('_nimo_gemini_key', encryptKey(apiKey)); setShowSettings(false); }} 
+                                    className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black">SAVE</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [isAuth, setIsAuth] = useState(false);
+            const [pw, setPw] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const checkLogin = async () => {
+                setLoading(true);
+                try {
+                    const res = await fetch(`${API_BASE_URL}/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: pw })
+                    });
+                    const data = await res.json();
+                    if (data.success) setIsAuth(true);
+                    else alert("Access Denied");
+                } catch (e) {
+                    alert("Server error");
+                } finally { setLoading(false); }
+            };
+
+            if (!isAuth) return (
+                <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-6">
+                    <div className="max-w-md w-full space-y-10 text-center animate-fade">
+                        <h1 className="text-6xl font-black italic tracking-tighter">NIMO MUSIC</h1>
+                        <input type="password" value={pw} onChange={e => setPw(e.target.value)} onKeyDown={e => e.key === 'Enter' && checkLogin()} placeholder="PASSWORD" 
+                            className="w-full bg-white/10 border border-white/20 rounded-2xl py-6 text-center font-bold tracking-[0.5em] outline-none focus:border-blue-500" />
+                        <button onClick={checkLogin} disabled={loading} className="w-full bg-white text-black py-6 rounded-2xl font-black text-lg hover:bg-blue-500 hover:text-white transition-all">
+                            {loading ? "CHECKING..." : "ENTER"}
+                        </button>
+                    </div>
+                </div>
+            );
+            return <SunoPromptGenerator userPw={pw} />;
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
