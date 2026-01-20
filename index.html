@@ -5,24 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NIMO MUSIC - Professional AI Music Engine</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; }
         .btn-active { background: #2563eb !important; color: white !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
         .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         button:focus { outline: none; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        /* Result Copy Buttons */
-        .copy-btn-group { opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .label-text { font-size: 14px; font-weight: 900; color: #000; text-transform: uppercase; letter-spacing: 0.05em; font-style: italic; }
+        /* Toggle Switch Style */
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2563eb; }
+        input:checked + .slider:before { transform: translateX(26px); }
         .result-card:hover .copy-btn-group { opacity: 1; }
+        .copy-btn-group { opacity: 0; transition: opacity 0.3s ease-in-out; }
     </style>
 </head>
 <body>
@@ -61,24 +64,42 @@
             }
         };
 
-        const RenderOptions = React.memo(({ label, field, list, selectedValues, onToggle, onReset }) => (
+        const RenderOptions = React.memo(({ label, field, list, selectedValues, onToggle, onReset, isAuto, onAutoToggle }) => (
             <div className="mb-10">
                 <div className="flex justify-between items-center mb-4">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">{label}</label>
+                    <div className="flex items-center gap-4">
+                        <label className="label-text">{label}</label>
+                        {onAutoToggle && (
+                            <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-bold text-gray-500">자동</span>
+                                <label className="switch">
+                                    <input type="checkbox" checked={isAuto} onChange={onAutoToggle} />
+                                    <span className="slider"></span>
+                                </label>
+                            </div>
+                        )}
+                    </div>
                     {onReset && (
                         <button onClick={onReset} className="text-[10px] font-black text-red-400 hover:text-red-600 border border-red-100 px-3 py-1 rounded-full transition-all bg-red-50">
                             <i className="fa-solid fa-rotate-left mr-1"></i> RESET ALL
                         </button>
                     )}
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                    {list.map(val => (
-                        <button key={val} onClick={(e) => onToggle(e, field, val)}
-                            className={`px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all border ${selectedValues.includes(val) ? 'btn-active border-blue-600 scale-95' : 'bg-white text-gray-400 border-gray-100 hover:border-blue-200'}`}>
-                            {val}
-                        </button>
-                    ))}
-                </div>
+                {!isAuto && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 animate-fade">
+                        {list.map(val => (
+                            <button key={val} onClick={(e) => onToggle(e, field, val)}
+                                className={`px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all border ${selectedValues.includes(val) ? 'btn-active border-blue-600 scale-95' : 'bg-white text-gray-400 border-gray-100 hover:border-blue-200'}`}>
+                                {val}
+                            </button>
+                        ))}
+                    </div>
+                )}
+                {isAuto && (
+                    <div className="py-4 px-6 bg-blue-50/50 border border-dashed border-blue-200 rounded-2xl text-[11px] font-bold text-blue-400 text-center animate-fade">
+                        AI가 테마와 장르에 맞춰 최적의 구성을 자동으로 결정합니다.
+                    </div>
+                )}
             </div>
         ));
 
@@ -91,6 +112,9 @@
             const [apiKey, setApiKey] = useState('');
             const [testStatus, setTestStatus] = useState('idle');
             
+            const [isAutoInstruments, setIsAutoInstruments] = useState(true);
+            const [isAutoMixing, setIsAutoMixing] = useState(true);
+
             const initialFormState = {
                 genre: [], era: [], mood: [], vocal: [], instruments: [], mixing: [], theme: '', lyricsLanguage: 'ko'
             };
@@ -104,6 +128,8 @@
             const resetOptions = useCallback((e) => {
                 e.preventDefault();
                 setFormData(initialFormState);
+                setIsAutoInstruments(true);
+                setIsAutoMixing(true);
             }, []);
 
             const toggleSelection = useCallback((e, field, value) => {
@@ -141,12 +167,18 @@
                 setIsGenerating(true);
                 const realKey = decryptKey(savedKey);
 
-                // [중요] 프롬프트 엔지니어링 개선 (가사 언어 고정, 클리셰 금지, 포맷팅 규칙 강화)
+                const getLanguageName = (code) => {
+                    if (code === 'ko') return 'KOREAN (Hangul)';
+                    if (code === 'en') return 'ENGLISH';
+                    if (code === 'jp') return 'JAPANESE (Kanji/Kana)';
+                    return 'ENGLISH';
+                };
+
                 const systemRole = ` 
                     ROLE: You are the 'NIMO Music Prompt Architect', the world's best expert in Suno AI v5. You design optimal keyword combinations by mastering Suno's algorithm, controlling everything from instrument placement to reverb depth.
 
                     [STRICT RULES - FOLLOW THESE OR FAIL]
-                    1. **LYRICS**: The lyrics MUST be written in **${formData.lyricsLanguage === 'ko' ? 'KOREAN (Hangul)' : 'ENGLISH'}** only. This is the most important rule.
+                    1. **LYRICS**: The lyrics MUST be written in **${getLanguageName(formData.lyricsLanguage)}** only. This is the most important rule.
                     
                     2. **STYLE PROMPT ARCHITECTURE (The 5-Layer Stack)**: You must construct the style prompt using the following 5-layer hierarchy to ensure maximum AI comprehension:
                        - Layer 1: [Main Genre] (e.g., 2025 Billboard Pop, K-Pop Ballad)
@@ -163,19 +195,23 @@
                        - Identify the most similar existing song based on the selected theme, genre, mood, and instrumentation, and write lyrics in that specific style.
                        - Instead of simple word repetition, analyze and replicate the unique lyrical style, narrative structure, and emotional depth of the reference song.
                        
-                       
                     4. **CLEAN OUTPUT**:
                        - Do NOT use asterisks (*, **) or hash marks (#) or any markdown formatting in the final response.
                        - Provide the output in plain text only.
                     
                     5. **STRUCTURE**:
-                       - Generate specific sections perfect for each song.
-                       - Use [Meta Tags] inside the lyrics only for structure and guide prompt (e.g., [Intro]).
+                       - Generate specific sections perfect for each song (e.g., [Verse 1], [Chorus], [Bridge]).
+                       - **STRICT RULE**: Do NOT generate [Intro] or [Outro] sections. Start directly from the main content.
                        - Style tags in the "Style Prompt" section must be English technical terms.
 
                     INPUT DATA:
                     - Theme: "${formData.theme}"
-                    - Genre/Mood/Instruments: ${JSON.stringify(formData)}
+                    - Genre: ${formData.genre.join(', ')}
+                    - Era: ${formData.era.join(', ')}
+                    - Mood: ${formData.mood.join(', ')}
+                    - Vocal: ${formData.vocal.join(', ')}
+                    - Instruments: ${isAutoInstruments ? "AI Automated Selection" : formData.instruments.join(', ')}
+                    - Mixing: ${isAutoMixing ? "AI Automated Selection" : formData.mixing.join(', ')}
                     
                     OUTPUT FORMAT:
                     Title: (Creative Title)
@@ -199,7 +235,6 @@
                     if (!res.ok || data.error) throw new Error(data.error?.message || "API Error");
 
                     if (data.candidates && data.candidates[0].content) {
-                        // 결과물에서 Markdown 문자(*) 제거 필터링
                         const rawText = data.candidates[0].content.parts[0].text;
                         const cleanText = rawText.replace(/\*/g, '').replace(/#/g, '');
                         setResult(cleanText);
@@ -222,12 +257,9 @@
 
             const parseResult = (resultText) => {
                 if (!resultText) return { title: '', style: '', lyrics: '' };
-                
-                // 특수문자가 제거된 상태지만 안전하게 파싱
                 const titleMatch = resultText.match(/Title:\s*(.*)/i);
                 const styleMatch = resultText.match(/Style Prompt:\s*([\s\S]*?)(?=Lyrics:|$)/i);
                 const lyricsMatch = resultText.match(/Lyrics:\s*([\s\S]*)/i);
-
                 return {
                     title: titleMatch ? titleMatch[1].trim() : 'Untitled',
                     style: styleMatch ? styleMatch[1].trim() : '',
@@ -259,25 +291,25 @@
                                 <RenderOptions label="시대 / ERA" field="era" list={OPTIONS.eras[language]} selectedValues={formData.era} onToggle={toggleSelection} />
                                 <RenderOptions label="무드 / MOOD" field="mood" list={OPTIONS.moods[language]} selectedValues={formData.mood} onToggle={toggleSelection} />
                                 <RenderOptions label="보컬 / VOCAL" field="vocal" list={OPTIONS.vocals[language]} selectedValues={formData.vocal} onToggle={toggleSelection} />
-                                <RenderOptions label="악기 / INSTRUMENTS" field="instruments" list={OPTIONS.instruments[language]} selectedValues={formData.instruments} onToggle={toggleSelection} />
-                                <RenderOptions label="믹싱 / MIXING" field="mixing" list={OPTIONS.mixingStyles[language]} selectedValues={formData.mixing} onToggle={toggleSelection} />
+                                <RenderOptions label="악기 / INSTRUMENTS" field="instruments" list={OPTIONS.instruments[language]} selectedValues={formData.instruments} onToggle={toggleSelection} isAuto={isAutoInstruments} onAutoToggle={() => setIsAutoInstruments(!isAutoInstruments)} />
+                                <RenderOptions label="믹싱 / MIXING" field="mixing" list={OPTIONS.mixingStyles[language]} selectedValues={formData.mixing} onToggle={toggleSelection} isAuto={isAutoMixing} onAutoToggle={() => setIsAutoMixing(!isAutoMixing)} />
 
                                 <div className="grid md:grid-cols-2 gap-8 mb-12 border-t pt-10">
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 italic">가사 언어 / LYRICS LANGUAGE</label>
+                                        <label className="block label-text mb-3">가사 언어 / LYRICS LANGUAGE</label>
                                         <div className="flex gap-2">
-                                            {['ko', 'en'].map(l => (
+                                            {['ko', 'en', 'jp'].map(l => (
                                                 <button key={l} onClick={(e) => {e.preventDefault(); setFormData(prev => ({...prev, lyricsLanguage: l}))}}
                                                     className={`flex-1 py-4 rounded-2xl font-black text-xs transition-all border ${formData.lyricsLanguage === l ? 'btn-active border-blue-600' : 'bg-gray-50 text-gray-400 border-gray-100'}`}>
-                                                    {l === 'ko' ? 'KOREAN' : 'ENGLISH'}
+                                                    {l === 'ko' ? 'KOREAN' : l === 'en' ? 'ENGLISH' : 'JAPANESE'}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 italic">테마 / THEME & STORY</label>
+                                        <label className="block label-text mb-3">테마 / THEME & STORY</label>
                                         <textarea className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 h-[72px] font-medium text-sm" 
-                                            placeholder="예: 젊은 남녀간의 알콩달콩 사랑 이야기, 금요일 저녁 신나는 퇴근을 하며 주말에 무엇을하며 재미있게 놀지 신나는 상상 (구체적일수록 좋습니다)" 
+                                            placeholder="예: 젊은 남녀간의 알콩달콩 사랑 이야기, 금요일 저녁 신나는 퇴근을 하며..." 
                                             value={formData.theme}
                                             onChange={e => setFormData(prev => ({...prev, theme: e.target.value}))} />
                                     </div>
@@ -293,9 +325,7 @@
                             <div className="result-card bg-white rounded-[3rem] shadow-2xl border p-8 md:p-12 animate-fade">
                                 <div className="flex justify-between items-center mb-8">
                                     <h2 className="text-2xl font-black italic tracking-tighter text-blue-600">SUCCESS!</h2>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => setResult(null)} className="bg-gray-100 text-gray-600 px-6 py-3 rounded-2xl font-black text-sm">BACK</button>
-                                    </div>
+                                    <button onClick={() => setResult(null)} className="bg-gray-100 text-gray-600 px-6 py-3 rounded-2xl font-black text-sm">BACK</button>
                                 </div>
 
                                 <div className="mb-10">
@@ -337,41 +367,8 @@
                         )}
                     </main>
 
-                    {showHelp && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-md animate-fade">
-                            <div className="bg-white rounded-[3rem] w-full max-w-lg p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
-                                <button onClick={() => setShowHelp(false)} className="absolute top-8 right-8 text-gray-300 hover:text-black"><i className="fa-solid fa-xmark text-2xl"></i></button>
-                                <h3 className="text-2xl font-black italic tracking-tighter mb-8 text-blue-600 border-b pb-4">HELP GUIDE</h3>
-                                <div className="space-y-8 text-sm">
-                                    <section>
-                                        <h4 className="font-black text-gray-900 mb-2 flex items-center gap-2 text-left">
-                                            <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px]">1</span>
-                                            API 키 발급
-                                        </h4>
-                                        <p className="text-gray-500 ml-8 text-left">구글 계정으로 로그인 후 <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-blue-500 underline font-bold">여기</a>에서 키를 생성하세요.</p>
-                                    </section>
-                                    <section>
-                                        <h4 className="font-black text-gray-900 mb-2 flex items-center gap-2 text-left">
-                                            <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px]">2</span>
-                                            설정 및 저장
-                                        </h4>
-                                        <p className="text-gray-500 ml-8 text-left">상단 <b>API SETTINGS</b>를 눌러 키를 입력하고 연결 테스트를 진행하세요.</p>
-                                    </section>
-                                    <section>
-                                        <h4 className="font-black text-gray-900 mb-2 flex items-center gap-2 text-left">
-                                            <span className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px]">3</span>
-                                            프롬프트 생성
-                                        </h4>
-                                        <p className="text-gray-500 ml-8 text-left">원하는 옵션을 선택하고 생성 버튼을 누르면 Suno AI용 결과가 완성됩니다!</p>
-                                    </section>
-                                </div>
-                                <button onClick={() => setShowHelp(false)} className="w-full mt-10 py-5 bg-black text-white rounded-2xl font-black hover:bg-blue-600 transition-all">CLOSE</button>
-                            </div>
-                        </div>
-                    )}
-
                     {showSettings && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-fade">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-sm animate-fade">
                             <div className="bg-white rounded-[3rem] w-full max-w-md p-10 shadow-2xl relative text-left">
                                 <button onClick={() => setShowSettings(false)} className="absolute top-8 right-8 text-gray-300 hover:text-black"><i className="fa-solid fa-xmark text-2xl"></i></button>
                                 <h3 className="text-2xl font-black italic tracking-tighter uppercase mb-8">Gemini Config</h3>
@@ -390,18 +387,15 @@
         const App = () => {
             const [isAuth, setIsAuth] = useState(false);
             const [pw, setPw] = useState('');
-            
-            const handleKeyDown = (e) => {
-                if (e.key === 'Enter' && pw === 'nimo123') setIsAuth(true);
-            };
+            const handleKeyDown = (e) => { if (e.key === 'Enter' && pw === 'nimo617') setIsAuth(true); };
 
             if (!isAuth) return (
-                <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-6">
+                <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-6 font-['Inter']">
                     <div className="max-w-md w-full space-y-10 text-center animate-fade">
                         <h1 className="text-6xl font-black italic tracking-tighter">NIMO MUSIC</h1>
                         <input type="password" value={pw} onChange={e => setPw(e.target.value)} onKeyDown={handleKeyDown} placeholder="PASSWORD" 
                             className="w-full bg-white/10 border border-white/20 rounded-2xl py-6 text-center font-bold tracking-[1em] outline-none focus:border-blue-500" />
-                        <button onClick={() => pw === 'nimo123' && setIsAuth(true)} className="w-full bg-white text-black py-6 rounded-2xl font-black text-lg hover:bg-blue-500 hover:text-white transition-all">ENTER</button>
+                        <button onClick={() => pw === 'nimo617' && setIsAuth(true)} className="w-full bg-white text-black py-6 rounded-2xl font-black text-lg hover:bg-blue-500 hover:text-white transition-all">ENTER</button>
                     </div>
                 </div>
             );
