@@ -31,41 +31,84 @@ app.post('/api/generate', async (req, res) => {
         const isNoVocal = formData.vocal.includes('보컬 없음') || formData.vocal.includes('No Vocal');
         const isDuet = formData.vocal.some(v => v.includes('듀엣') || v.includes('Duet'));
         const getLangName = (code) => ({ ko: 'KOREAN (Hangul)', en: 'ENGLISH', jp: 'JAPANESE' }[formData.lyricsLanguage]);
+// [핵심 기술: 보컬 옵션 정밀 매핑 시스템]
+        
+        // 1. 입력 데이터 정규화 (배열이든 문자열이든 배열로 통일)
+        const selectedVocals = Array.isArray(formData.vocal) ? formData.vocal : [formData.vocal];
 
-        // [핵심 기술: 프롬프트 로직 은닉]
+        // 2. 한글 UI -> Suno 최적화 영문 태그 매핑 (A&R Dictionary)
+        const vocalTypeMap = {
+            '남성 보컬': 'Male Vocals',
+            '여성 보컬': 'Female Vocals',
+            '남성 듀엣': 'Male Duet',
+            '여성 듀엣': 'Female Duet',
+            '남녀 듀엣': 'Duet, Male and Female Vocals',
+            '혼성 합창': 'Mixed Choir',
+            '남성 합창': 'Male Choir',
+            '여성 합창': 'Female Choir',
+            '어린이 합창': 'Children Choir',
+            '아카펠라': 'Acapella',
+            '랩': 'Rap, Hiphop Vocals',
+            '말하듯노래': 'Spoken Word, Narration',
+            '보컬 없음': 'Instrumental',
+            '허밍': 'Humming',
+            '휘파람': 'Whistle',
+            '비브라토': 'Strong Vibrato',
+            '가성': 'Falsetto',
+            '하모니': 'Harmonies',
+            '백그라운드 보컬': 'Backing Vocals'
+        };
+
+        // 3. 선택된 옵션을 영문 태그로 변환 및 조합
+        // '보컬 없음'은 스타일 태그엔 넣되, 로직 분기용으로 따로 체크함
+        const vocalTagsString = selectedVocals
+            .map(v => vocalTypeMap[v] || v) // 매핑된 영문값 가져오기 (없으면 원본 유지)
+            .filter(v => v !== 'Instrumental') // Instrumental은 태그보다는 구조적 지시가 더 중요하므로 필터링 가능하나, 명확성을 위해 둠
+            .join(', ');
+
+        // 4. 로직 분기용 플래그 설정
+        const isNoVocal = selectedVocals.some(v => v.includes('보컬 없음') || v.includes('No Vocal'));
+        const isDuet = selectedVocals.some(v => v.includes('듀엣') || v.includes('Duet'));
+        const getLangName = () => ({ ko: 'KOREAN (Hangul)', en: 'ENGLISH', jp: 'JAPANESE' }[formData.lyricsLanguage] || 'KOREAN');
+
+        // [시스템 프롬프트 구성]
         const systemRole = ` 
             ROLE: You are the 'NIMO Music Prompt Architect', the world's best expert in Suno AI v5.
-            [STRICT VOCAL RULES]
+            
+            [STRICT VOCAL & LANGUAGE RULES]
             ${isNoVocal ? 
-              `1. VOCAL STATUS: 'No Vocal(Instrumental)' is selected. DO NOT write any lyrics. Provide structural layout tags like [Drum Break], [Guitar Solo], etc.` :
-              `2. LYRICS LANGUAGE: MUST be in **${getLangName()}** only.`
+              `1. VOCAL STATUS: **INSTRUMENTAL MODE**. 'No Vocal' is selected. 
+                 - DO NOT write any lyrics. 
+                 - OUTPUT STRUCTURE TAGS ONLY (e.g., [Intro], [Drum Break], [Synth Solo], [Drop], [Outro]).` :
+              `1. LYRICS LANGUAGE: MUST be in **${getLangName()}** only.
+               2. VOCAL TIMBRE: The user selected **"${vocalTagsString}"**. You MUST include these exact tags in the Style Prompt.`
             }
-            ${isDuet ? `3. DUET FORMATTING: Distinguish singers with tags like [Male], [Female], [Both], etc.` : ''}
+            ${isDuet ? `3. DUET FORMATTING: The song is a DUET. Distinguish singers in lyrics with tags like [Male], [Female], [Both], or [Choir] as appropriate.` : ''}
 
             [NIMO PLATINUM HIT-MAKING WORKFLOW]
-            To produce the ultimate masterpiece based on the user's input, strictly execute this 5-stage production matrix:
-            STAGE 1. A&R CONCEPT DEFINITION: Analyze the "Theme" and "Context" to define the emotional core, target demographic, and commercial vibe.
-            STAGE 2. STRUCTURAL BLUEPRINTING: Engineer dynamic tension and release (e.g., Verse, Pre-Chorus, Drop, Bridge) to maximize listener retention.
-            STAGE 3. LYRICAL ENGINEERING & PROSODY: Craft evocative lyrics with sticky hooks. Ensure phonetic harmony and deep cultural resonance.
-            STAGE 4. SONIC ARCHITECTURE (ARRANGEMENT): Design a cutting-edge sound palette using advanced instrumentation, sub-bass layers, and rhythmic textures.
-            STAGE 5. PERFORMANCE CALIBRATION: Direct the AI's rendering by specifying vocal tones, emotional intensity, and dynamic shifts within the song.
+            To produce the ultimate masterpiece, execute this 5-stage production matrix:
+            STAGE 1. A&R CONCEPT DEFINITION: Define emotional core and commercial vibe based on Context.
+            STAGE 2. STRUCTURAL BLUEPRINTING: Engineer dynamic tension (Verse -> Pre-Chorus -> Chorus).
+            STAGE 3. LYRICAL ENGINEERING: (If vocal) Craft sticky hooks with perfect prosody.
+            STAGE 4. SONIC ARCHITECTURE: Design a cutting-edge sound palette.
+            STAGE 5. PERFORMANCE CALIBRATION: Direct the AI's rendering tone.
 
             [REFERENCE & EXECUTION]
-            1. REFERENCE ANALYSIS: Instead of generic generation, recall the structure and vibe of a real global hit song similar to "${theme}". Extract its "Hit DNA" (Chord progression, Tempo, Groove).
-            2. STRUCTURE OPTIMIZATION: Based on the reference, build the song body.
-               **CRITICAL RULE**: DO NOT generate [Intro] or [Outro] tags in the lyrics section. Let the Style Prompt drive the musical intro/outro naturally. Focus on the core content (Verse/Chorus/Bridge).
+            1. REFERENCE ANALYSIS: Extract "Hit DNA" (Chord, Tempo, Groove) from a real global hit similar to "${theme}".
+            2. STRUCTURE OPTIMIZATION: Build the song body based on the reference.
+               **CRITICAL RULE**: DO NOT generate [Intro] or [Outro] tags in the lyrics section. Let the Style Prompt drive the intro naturally.
             3. STYLE PROMPT (SONIC FINGERPRINT): Construct a high-fidelity "5-Layer Tag" system:
-               Layer 1: Main Genre & Sub-genre
-               Layer 2: Key Instruments & Sound Design Elements
+               Layer 1: Main Genre & Sub-genre & **"${vocalTagsString}" (MANDATORY)**
+               Layer 2: Key Instruments (e.g., "${selectedVocals.includes('휘파람') ? 'Whistling' : ''}", etc.)
                Layer 3: Mood & Emotional Atmosphere
                Layer 4: Tempo (BPM) & Rhythm Style
-               Layer 5: Production Quality Tags (e.g., High Fidelity, Billboard Sound)
+               Layer 5: Production Quality (e.g., High Fidelity, Billboard Sound)
                *CONSTRAINT*: CLEAN plain text only. No asterisks.
 
             INPUT: - Theme: "${theme}" - Context: ${JSON.stringify(formData)}
             OUTPUT FORMAT:
             Title: (Creative Title)
-            Style Prompt: (The 5-layer English tags)
+            Style Prompt: (The 5-layer English tags starting with "${vocalTagsString}")
             Lyrics: (The full lyrics with structural tags)
         `;
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
@@ -85,3 +128,4 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
