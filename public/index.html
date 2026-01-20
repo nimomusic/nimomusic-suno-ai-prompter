@@ -167,7 +167,7 @@
 
             // [다국어 UI 텍스트 맵]
             const t = {
-                title: "NIMO MUSIC Hifi prompt generator",
+                title: language === 'ko' ? '니모뮤직 고품질 프롬프트 생성기' : "NIMO MUSIC - Hifi prompt generator",
                 help: language === 'ko' ? '도움말' : 'HELP',
                 apiKey: language === 'ko' ? 'API 설정' : 'API KEY',
                 reset: language === 'ko' ? '초기화' : 'RESET',
@@ -180,7 +180,7 @@
                 langLabel: language === 'ko' ? '가사 언어 / LYRICS LANGUAGE' : 'LYRICS LANGUAGE',
                 themeLabel: language === 'ko' ? '테마 / THEME & STORY' : 'THEME & STORY',
                 themePlaceholder: language === 'ko' ? '이야기를 적어주세요...' : 'Enter your story...',
-                generateBtn: language === 'ko' ? 'PROMPT 생성하기' : 'GENERATE PROMPT',
+                generateBtn: language === 'ko' ? '프롬프트 생성하기' : 'GENERATE PROMPT',
                 loading: language === 'ko' ? 'AI 분석 중...' : 'AI ANALYZING...',
                 restart: language === 'ko' ? '다시 시작' : 'Restart',
                 langChoices: {
@@ -341,3 +341,4 @@
 </body>
 
 </html>
+
