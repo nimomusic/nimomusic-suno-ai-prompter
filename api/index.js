@@ -28,9 +28,6 @@ app.post('/api/generate', async (req, res) => {
             return res.status(403).json({ error: '권한이 없습니다.' });
         }
 
-        const isNoVocal = formData.vocal.includes('보컬 없음') || formData.vocal.includes('No Vocal');
-        const isDuet = formData.vocal.some(v => v.includes('듀엣') || v.includes('Duet'));
-        const getLangName = (code) => ({ ko: 'KOREAN (Hangul)', en: 'ENGLISH', jp: 'JAPANESE' }[formData.lyricsLanguage]);
 // [핵심 기술: 보컬 옵션 정밀 매핑 시스템]
         
         // 1. 입력 데이터 정규화 (배열이든 문자열이든 배열로 통일)
@@ -128,4 +125,5 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
