@@ -162,29 +162,36 @@
 
                 const getLang = (code) => ({ ko: 'KOREAN', en: 'ENGLISH', jp: 'JAPANESE' }[code] || 'KOREAN');
 
-                const systemRole = ` 
-                    ROLE: You are the 'NIMO Music Prompt Architect', the world's best expert in Suno AI v5. You design optimal keyword combinations by mastering Suno's algorithm.
+                // 개선된 조건부 로직
+                const isNoVocal = formData.vocal.includes('보컬 없음') || formData.vocal.includes('No Vocal');
+                const isDuet = formData.vocal.some(v => v.includes('듀엣') || v.includes('Duet'));
+                const getLangName = (code) => ({ ko: 'KOREAN (Hangul)', en: 'ENGLISH', jp: 'JAPANESE' }[code]);
 
-                    [STRICT RULES]
-                    1. **LYRICS**: The lyrics MUST be written in **${getLang(formData.lyricsLanguage)}** only.
+                const systemRole = ` 
+                    ROLE: You are the 'NIMO Music Prompt Architect', the world's best expert in Suno AI v5.
                     
-                    2. **STYLE PROMPT ARCHITECTURE**: Construct using 5-layer hierarchy:
-                       - Layer 1: [Main Genre]
-                       - Layer 2: [Sub-Genre/Vibe]
-                       - Layer 3: [Vocal Characteristic]
-                       - Layer 4: [Instrumentation] (BPM included)
-                       - Layer 5: [Production Quality]
-                       - Use English technical terms only, no brackets, separated by commas.
-                    
-                    3. **STYLE REFERENCE & ADAPTATION**:
-                       - Identify a real similar song based on Theme: ${formData.theme} and Genre: ${formData.genre.join(',')}.
-                       - Benchmark its narrative structure and emotional depth for the lyrics.
-                       
-                    4. **CLEAN OUTPUT**: No markdown, no asterisks, no hash marks. Plain text only.
-                    
-                    5. **STRUCTURE**:
-                       - Use [Verse], [Chorus], [Bridge] tags.
-                       - **STRICT**: DO NOT generate [Intro] or [Outro].
+                    [STRICT VOCAL RULES]
+                    ${isNoVocal ? 
+                      `1. VOCAL STATUS: 'No Vocal(Instrumental)' is selected. 
+                         - DO NOT write any lyrics or singing words.
+                         - Instead of lyrics, provide a structural layout using only instrumental tags like [Drum Break], [Guitar Solo], [Piano Interlude], [Synthesizer Build-up], etc.` :
+                      `1. LYRICS LANGUAGE: MUST be in **${getLangName(formData.lyricsLanguage)}** only.`
+                    }
+                    ${isDuet ? 
+                      `2. DUET FORMATTING: A Duet is selected.
+                         - You MUST clearly distinguish between singers by adding tags at the beginning of each section or line.
+                         - Use tags like [Male], [Female], [Male Duet], [Female Duet], [Both], [Singer 1], or [Singer 2] based on the selected vocal type.` : 
+                      ''
+                    }
+
+                    [STRUCTURE]
+                    - Benchmark a real song similar to "${formData.theme}".
+                    - DO NOT generate [Intro] or [Outro].
+
+                    [PROMPT]
+                    - STYLE: Construct 5-layer tech tags (Genre, Vibe, Vocal, Instrument+BPM, Production).
+                    - REFERENCE: Benchmark a real song similar to "${formData.theme}".
+                    - CLEAN: Plain text only, no asterisks.
 
                     INPUT:
                     - Theme: "${formData.theme}"
