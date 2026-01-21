@@ -54,6 +54,23 @@ app.post('/api/generate', async (req, res) => {
             '가성': 'Falsetto',
             '하모니': 'Harmonies',
             '백그라운드 보컬': 'Backing Vocals'
+            '부드러운': 'Soft'
+            '파워풀한': 'Powerful'
+            '낮은': 'Deep'
+            '거친': 'Raspy'
+            '속삭이는': 'Whispered'
+            '감성적인': 'Emotional'
+            '공기섞인': 'Airy'
+            '오토튠': 'Auto-tuned'
+            '소울풀한': 'Soulful'
+            '어린아이같은': 'Childlike'
+            '부드러운': 'Smooth'
+            '탁하고 강한': 'Gritty'
+            '여러층': 'Layered'
+            '최소한의': 'Minimalist'
+            '빠른 랩': 'Fast rap'
+            '숨가쁜': 'Breathless delivery'
+            '멜리스마 R&B': 'Melismatic R&B'
         };
 
         // 3. 선택된 옵션을 영문 태그로 변환 및 조합
@@ -125,5 +142,6 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
 
