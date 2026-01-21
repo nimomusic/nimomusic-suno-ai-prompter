@@ -53,23 +53,23 @@ app.post('/api/generate', async (req, res) => {
             '비브라토': 'Strong Vibrato',
             '가성': 'Falsetto',
             '하모니': 'Harmonies',
-            '백그라운드 보컬': 'Backing Vocals'
-            '부드러운': 'Soft'
-            '파워풀한': 'Powerful'
-            '낮은': 'Deep'
-            '거친': 'Raspy'
-            '속삭이는': 'Whispered'
-            '감성적인': 'Emotional'
-            '공기섞인': 'Airy'
-            '오토튠': 'Auto-tuned'
-            '소울풀한': 'Soulful'
-            '어린아이같은': 'Childlike'
-            '부드러운': 'Smooth'
-            '탁하고 강한': 'Gritty'
-            '여러층': 'Layered'
-            '최소한의': 'Minimalist'
-            '빠른 랩': 'Fast rap'
-            '숨가쁜': 'Breathless delivery'
+            '백그라운드 보컬': 'Backing Vocals',
+            '부드러운': 'Soft',
+            '파워풀한': 'Powerful',
+            '낮은': 'Deep',
+            '거친': 'Raspy',
+            '속삭이는': 'Whispered',
+            '감성적인': 'Emotional',
+            '공기섞인': 'Airy',
+            '오토튠': 'Auto-tuned',
+            '소울풀한': 'Soulful',
+            '어린아이같은': 'Childlike',
+            '매끄러운': 'Smooth',
+            '탁하고 강한': 'Gritty',
+            '여러층': 'Layered',
+            '최소한의': 'Minimalist',
+            '빠른 랩': 'Fast rap',
+            '숨가쁜': 'Breathless delivery',
             '멜리스마 R&B': 'Melismatic R&B'
         };
 
@@ -104,7 +104,9 @@ app.post('/api/generate', async (req, res) => {
             STAGE 1. A&R CONCEPT DEFINITION: Define emotional core and commercial vibe based on Context.
             STAGE 2. STRUCTURAL BLUEPRINTING: Engineer dynamic tension (Verse -> Pre-Chorus -> Chorus).
             STAGE 3. LYRICAL ENGINEERING: (If vocal) Craft sticky hooks with perfect prosody.
-            STAGE 4. SONIC ARCHITECTURE: Design a cutting-edge sound palette.
+            STAGE 4. SONIC ARCHITECTURE: 
+                * AUTO INSTRUMENT MODE: ${formData.isAutoInstruments ? 'ON (AI chooses best instruments for the theme)' : 'OFF (Stick to user selection)'}
+                * AUTO MIXING MODE: ${formData.isAutoMixing ? 'ON (AI chooses best production style)' : 'OFF (Stick to user selection)'}
             STAGE 5. PERFORMANCE CALIBRATION: Direct the AI's rendering tone.
 
             [REFERENCE & EXECUTION]
@@ -142,6 +144,7 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
 
 
