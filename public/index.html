@@ -246,14 +246,14 @@
                         ) : (
                             <div className="bg-white rounded-[3rem] shadow-2xl border p-8 md:p-12 animate-fade">
                                 <div className="flex justify-between mb-8 border-b pb-6">
-                                    <h2 className="text-2xl font-black italic text-blue-600 uppercase tracking-tighter">PRODUCTION READY</h2>
+                                    <h2 className="text-2xl font-black italic text-blue-600 uppercase tracking-tighter">READY TO PLAY</h2>
                                     <button onClick={() => setResult(null)} className="bg-gray-100 px-6 py-2 rounded-full font-black text-xs uppercase hover:bg-gray-200">{t.restart}</button>
                                 </div>
                                 {['Title', 'Style Prompt', 'Lyrics'].map(key => (
                                     <div key={key} className="mb-8">
                                         <div className="flex justify-between mb-2">
                                             <label className="text-[11px] font-black text-gray-400 uppercase italic tracking-widest">{key}</label>
-                                            <button onClick={() => {navigator.clipboard.writeText(p[key.split(' ')[0].toLowerCase()]); alert('Copy Done!');}} className="text-blue-500 font-black text-[10px] hover:underline uppercase">COPY</button>
+                                            <button onClick={() => {navigator.clipboard.writeText(p[key.split(' ')[0].toLowerCase()]); alert('복사완료! Copy Done!');}} className="text-blue-500 font-black text-[10px] hover:underline uppercase">COPY</button>
                                         </div>
                                         <div className={`bg-gray-900 text-blue-100 p-6 rounded-2xl font-mono text-sm whitespace-pre-wrap border-2 border-gray-800 shadow-inner`}>{p[key.split(' ')[0].toLowerCase()]}</div>
                                     </div>
@@ -320,7 +320,7 @@
                     });
                     const data = await res.json();
                     if (data.success) setIsAuth(true);
-                    else alert("Access Denied");
+                    else alert("비밀번호를 확인 해 주세요.(recheck your password)");
                 } catch (e) { alert("Server connection failed"); }
             };
 
@@ -350,5 +350,6 @@
     </script>
 </body>
 </html>
+
 
 
