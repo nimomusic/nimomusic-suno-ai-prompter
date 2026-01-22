@@ -101,7 +101,7 @@ app.post('/api/generate', async (req, res) => {
 
             [NIMO PLATINUM HIT-MAKING WORKFLOW]
             To produce the ultimate masterpiece, execute this 5-stage production matrix:
-            STAGE 1. A&R CONCEPT DEFINITION: Define emotional core and commercial vibe based on Context.
+            STAGE 1. A&R CONCEPT DEFINITION: Define emotional core and commercial vibe based on Context and Do not use stereotypical AI vocabulary, including terms like 'echo', 'whisper', '무너져', and '선명한'.
             STAGE 2. STRUCTURAL BLUEPRINTING: Engineer dynamic tension (Verse -> Pre-Chorus -> Chorus).
             STAGE 3. LYRICAL ENGINEERING: (If vocal) Craft sticky hooks with perfect prosody.
             STAGE 4. SONIC ARCHITECTURE: 
@@ -144,6 +144,7 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
 
 
