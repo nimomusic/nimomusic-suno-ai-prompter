@@ -6,7 +6,7 @@ app.use(express.json());
 app.use(cors());
 
 // [보안사항 1: 입장 비밀번호]
-const ACCESS_PASSWORD = 'nimo123'; 
+const ACCESS_PASSWORD = 'C91C75B6-F35F-49FC-9E08-3C968112464E'; 
 
 // [보안사항 2: 로그인 체크 API]
 app.post('/api/login', (req, res) => {
@@ -64,5 +64,6 @@ app.post('/api/generate', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 module.exports = app;
