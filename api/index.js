@@ -146,6 +146,7 @@ app.post('/api/generate', async (req, res) => {
         5. [Suno v5 Style Prompt]는 반드시 5단계 스택 원칙을 지킨 영문 태그로 작성하십시오.
 
         INPUT: - Theme: "${theme}" - Context: ${JSON.stringify(formData)}
+        Final Output
         Title: (여기에 곡 제목 작성)
         Style Prompt: (여기에 영어 스타일 프롬프트 작성)
         Lyrics:
@@ -175,6 +176,7 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
 
 
