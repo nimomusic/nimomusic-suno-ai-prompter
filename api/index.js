@@ -116,7 +116,12 @@ app.post('/api/generate', async (req, res) => {
         - [Suno v5 Style Prompt]: 기술적 용어가 포함된 고품질 영문 프롬프트
         [섹션 5: 가사 입력부 (Lyrics)]
         - 구조 태그([Verse],[Pre-Chorus], [Chorus] 등)를 반드시 포함하여 AI의 곡 전개를 제어함.
-        - 클리셰가 제거된 가사를 작성하며, 괄호를 활용한 추임새나 사운드 이펙트 명령어를 삽입함.
+        - 클리셰가 제거된 가사를 작성함.
+        - 비가창 요소 처리: 노래를 부르는 부분이 아닌 악기 지시, 효과음, 분위기 묘사는 반드시 대괄호 [ ]를 사용하십시오. 소괄호 ( )는 가창자가 부르는 추임새나 코러스에만 제한적으로 사용합니다.
+        - 감정 및 효과음 정제: (하아, 한숨), (딩동, 문자 알림)처럼 설명적인 단어를 넣지 마십시오. AI가 해당 단어를 노래하지 않도록 소리 그 자체만 적으십시오. 
+          예: [Sigh], [Haa], [Ding-dong], [Sobbing], [Whisper] 등 영문 태그 권장.
+        - 악기 연주 지시**: 가사 사이나 Outro에 들어가는 악기 묘사도 영문 대괄호를 사용하십시오.
+          예: [Piano Solo], [Guitar Riff], [Fade out]
 
         품질 관리 지점 (QC Checkpoints)
         - Vocal Texture Check: 목소리가 너무 깨끗하기만 한가? (Vocal fry, Raspy, Breathy 등의 개성이 있는가?)
@@ -144,13 +149,14 @@ app.post('/api/generate', async (req, res) => {
             `3. 가사는 반드시 ${getLangName()}로 작성하고 하이퍼 리얼리즘 원칙을 고수하십시오.`}
         ${isDuet && !isNoVocal ? `4. **DUET 규칙**: 가창 파트를 [Male], [Female], [Both] 태그로 명확히 구분하여 작성하십시오.` : ''}
         5. [Suno v5 Style Prompt]는 반드시 5단계 스택 원칙을 지킨 영문 태그로 작성하십시오.
+        6. 가사 섹션 내의 모든 태그(구조 및 효과)는 **영문 대괄호 [ ]**를 사용하고, 가사 본문만 ${getLangName()}로 작성하십시오.
 
         INPUT: - Theme: "${theme}" - Context: ${JSON.stringify(formData)}
         Final Output
         Title: (여기에 곡 제목 작성)
         Style Prompt: (여기에 영어 스타일 프롬프트 작성)
         Lyrics:
-        (여기에 가사 또는 연주 태그 작성)
+        (여기에 가사 또는 영문 연주 태그 작성)
         `;
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
@@ -176,6 +182,7 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
 
 
