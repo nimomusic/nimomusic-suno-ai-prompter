@@ -128,9 +128,9 @@ app.post('/api/generate', async (req, res) => {
 
         [사용자 선택 데이터 (User Requirements)]
         - Language: ${getLangName()}
-        - Genre: ${formData.genre}
-        - Era: ${formData.era}
-        - Mood: ${formData.mood}
+        - Genre: ${formData.genre.join(', ')}
+        - Era: ${formData.era.join(', ')}
+        - Mood: ${formData.mood.join(', ')}
         - Vocal: ${vocalTagsString}
         - Theme: ${theme}
         ${isDuet ? '- Special Condition: DUET MODE ACTIVE' : ''}
@@ -146,10 +146,10 @@ app.post('/api/generate', async (req, res) => {
         5. [Suno v5 Style Prompt]는 반드시 5단계 스택 원칙을 지킨 영문 태그로 작성하십시오.
 
         INPUT: - Theme: "${theme}" - Context: ${JSON.stringify(formData)}
-        OUTPUT FORMAT:
-        Title: 
-        Style Prompt:
+        Title: (여기에 곡 제목 작성)
+        Style Prompt: (여기에 영어 스타일 프롬프트 작성)
         Lyrics:
+        (여기에 가사 또는 연주 태그 작성)
         `;
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
@@ -160,7 +160,14 @@ app.post('/api/generate', async (req, res) => {
         const data = await response.json();
         if (data.error) throw new Error(data.error.message);
 
-        res.json({ result: data.candidates[0].content.parts[0].text });
+        // 결과값 추출
+        let aiResponse = data.candidates[0].content.parts[0].text;
+        
+        // 프론트엔드가 파싱할 수 있도록 가공 (보고서 내용은 버리고 Final Output 부분만 추출)
+        const finalMatch = aiResponse.match(/Title:[\s\S]*/i);
+        const cleanResult = finalMatch ? finalMatch[0] : aiResponse;
+
+        res.json({ result: cleanResult });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -168,6 +175,7 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
 
 
