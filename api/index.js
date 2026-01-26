@@ -138,12 +138,18 @@ app.post('/api/generate', async (req, res) => {
 
         [최종 실행 명령]
         1. 위의 '기본 제작 지침'을 엔진으로 삼아, 사용자가 선택한 [사용자 선택 데이터]를 반영하여 해당 곡에 최적화된 음악 제작 지침으로 재설계하십시오.
-        2. 모든 출력은 반드시 '표준 출력 형식 규격'에 맞춰 섹션 1부터 섹션 5까지 상세히 작성하십시오.
+        2. 반드시 '표준 출력 형식 규격'에 맞춰 섹션 1부터 섹션 5까지 상세히 분석하십시오.
         ${isNoVocal ? 
             '3. **INSTRUMENTAL 모드**: 가사(Lyrics)를 절대 작성하지 마십시오. 대신 [Intro], [Drum Break], [Synth Solo] 등 악기 구조 태그만 섹션 5에 작성하십시오.' : 
             `3. 가사는 반드시 ${getLangName()}로 작성하고 하이퍼 리얼리즘 원칙을 고수하십시오.`}
         ${isDuet && !isNoVocal ? `4. **DUET 규칙**: 가창 파트를 [Male], [Female], [Both] 태그로 명확히 구분하여 작성하십시오.` : ''}
         5. [Suno v5 Style Prompt]는 반드시 5단계 스택 원칙을 지킨 영문 태그로 작성하십시오.
+
+        INPUT: - Theme: "${theme}" - Context: ${JSON.stringify(formData)}
+        OUTPUT FORMAT:
+        Title: 
+        Style Prompt:
+        Lyrics:
         `;
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
@@ -162,6 +168,7 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
 
 
