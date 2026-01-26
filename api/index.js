@@ -107,6 +107,7 @@ app.post('/api/generate', async (req, res) => {
                      - STRICT ZERO-CLICHÉ POLICY: Regardless of the language used, absolutely avoid phrases or their translated equivalents for: "window pane", "rain on the glass", "tears", "whisper", "echo", "neon", "broken heart", "neon lights", "darkness", "scars", "chasing dreams".
                      - OBJECT-ORIENTED IMAGERY: Replace abstract emotional descriptors with gritty, specific, and tangible objects. Instead of expressing direct emotions (e.g., "I'm sad"), describe "The coffee stain on the receipt", "The rust on the bicycle", or "The blinking cursor on the screen". Focus on the physical world to evoke the psychological state.
                      - NO END-LINE PUNCTUATION: Do NOT use any periods (.), commas (,), or unnecessary symbols at the end of lyric lines. Keep the lines raw and clean.
+                     - NO INDENTATION or LEADING SPACES: Ensure every single line of lyrics is perfectly left-aligned. Do NOT add any spaces, tabs, or indentations at the beginning of any line.
                      - Do NOT explain emotions directly (no words like lonely, sad, warm, healing, touching).
                      - Show emotions only through concrete actions, habits, or small physical details.
                      - Avoid poetic clichés, abstract phrases, and generic metaphors.
@@ -157,6 +158,7 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
 
 
