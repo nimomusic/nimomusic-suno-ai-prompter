@@ -140,26 +140,25 @@ app.post('/api/generate', async (req, res) => {
         - Mood: ${formData.mood.join(', ')}
         - Vocal: ${vocalTagsString}
         - Theme: ${theme}
-        ${isDuet ? '- Special Condition: DUET MODE ACTIVE' : ''}
+        ${isDuet ? '- Special Condition: DUET MODE ACTIVE (Use [Male], [Female], [Both] tags)' : ''}
         ${isNoVocal ? '- Special Condition: INSTRUMENTAL MODE ACTIVE' : ''}
 
         [최종 실행 명령]
         1. 위의 '기본 제작 지침'을 엔진으로 삼아, 사용자가 선택한 [사용자 선택 데이터]를 반영하여 해당 곡에 최적화된 음악 제작 지침으로 재설계하십시오.
         2. 반드시 '표준 출력 형식 규격'에 맞춰 섹션 1부터 섹션 5까지 상세히 분석하십시오.
         ${isNoVocal ? 
-            '3. **INSTRUMENTAL 모드**: 가사(Lyrics)를 절대 작성하지 마십시오. 대신 [Intro], [Drum Break], [Synth Solo] 등 악기 구조 태그만 섹션 5에 작성하십시오.' : 
+            '3. INSTRUMENTAL 모드: 가사(Lyrics)를 절대 작성하지 마십시오. 대신 [Intro], [Drum Break], [Synth Solo] 등 악기 구조 태그만 섹션 5에 작성하십시오.' : 
             `3. 가사는 반드시 ${getLangName()}로 작성하고 하이퍼 리얼리즘 원칙을 고수하십시오.`}
         ${isDuet && !isNoVocal ? `4. **DUET 규칙**: 가창 파트를 [Male], [Female], [Both] 태그로 명확히 구분하여 작성하십시오.` : ''}
         5. [Suno v5 Style Prompt]는 반드시 5단계 스택 원칙을 지킨 영문 태그로 작성하십시오.
         6. 모든 구조 태그는 [Structure: Style/Emotion Directing] 형식을 적극 활용하여 곡의 역동성을 살리십시오. (예: [Verse 1: Calm, low-register, breathy])
         7. 가사 섹션 내의 모든 태그(구조 및 효과)는 영문 대괄호 [ ]를 사용하고, 가사 본문만 ${getLangName()}로 작성하십시오.
 
-        INPUT: - Theme: "${theme}" - Context: ${JSON.stringify(formData)}
         [Final Output]
         Title: (여기에 곡 제목 작성)
         Style Prompt: (여기에 영어 스타일 프롬프트 작성)
         Lyrics:
-        (여기에 가사 또는 영문 연주 태그 작성)
+        (이곳에 [Structure: Directing] 태그가 포함된 가사 또는 영문 연주 태그를 작성하세요)
         `;
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
@@ -185,6 +184,7 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
 
 
