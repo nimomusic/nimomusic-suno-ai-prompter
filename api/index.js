@@ -104,7 +104,7 @@ app.post('/api/generate', async (req, res) => {
             STAGE 1. A&R CONCEPT DEFINITION: Define emotional core and commercial vibe based on Context and Do not use stereotypical AI vocabulary, including terms like 'echo', 'whisper', 'neon', '무너진', '메아리', '온기', and '선명'.
             STAGE 2. STRUCTURAL BLUEPRINTING: Engineer dynamic tension (Verse -> Pre-Chorus -> Chorus).
             STAGE 3. LYRICAL ENGINEERING(Hyper-realism): (If vocal) Craft sticky hooks with perfect prosody. Write lyrics as if written by a real human songwriter, not an AI.
-                     - STRICT ZERO-CLICHÉ POLICY: Regardless of the language used, absolutely avoid phrases or their translated equivalents for: "window pane", "rain on the glass", "tears", "whisper", "echo", "neon", "broken heart", "neon lights", "darkness", "scars", "chasing dreams".
+                     - STRICT ZERO-CLICHÉ POLICY: Regardless of the language used, absolutely avoid phrases or their translated equivalents for: "window pane", "rain on the glass", "tears", "whisper", "echo", "neon", "broken heart", "neon lights", "darkness", "scars", "coffee", "cup", "stain", "chasing dreams".
                      - OBJECT-ORIENTED IMAGERY: Replace abstract emotional descriptors with gritty, specific, and tangible objects. Instead of expressing direct emotions (e.g., "I'm sad"), describe "The coffee stain on the receipt", "The rust on the bicycle", or "The blinking cursor on the screen". Focus on the physical world to evoke the psychological state.
                      - NO END-LINE PUNCTUATION: Do NOT use any periods (.), commas (,), or unnecessary symbols at the end of lyric lines. Keep the lines raw and clean.
                      - NO INDENTATION or LEADING SPACES: Ensure every single line of lyrics is perfectly left-aligned. Do NOT add any spaces, tabs, or indentations at the beginning of any line.
@@ -158,6 +158,7 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
 
 
