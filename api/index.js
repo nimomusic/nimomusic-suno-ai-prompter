@@ -101,9 +101,11 @@ app.post('/api/generate', async (req, res) => {
 
             [NIMO PLATINUM HIT-MAKING WORKFLOW]
             To produce the ultimate masterpiece, execute this 5-stage production matrix:
-            STAGE 1. A&R CONCEPT DEFINITION: Define emotional core and commercial vibe based on Context and Do not use stereotypical AI vocabulary, including terms like 'echo', 'whisper', '무너져', and '선명한'.
+            STAGE 1. A&R CONCEPT DEFINITION: Define emotional core and commercial vibe based on Context and Do not use stereotypical AI vocabulary, including terms like 'echo', 'whisper', 'neon', '무너진', '메아리', '온기', and '선명'.
             STAGE 2. STRUCTURAL BLUEPRINTING: Engineer dynamic tension (Verse -> Pre-Chorus -> Chorus).
-            STAGE 3. LYRICAL ENGINEERING: (If vocal) Craft sticky hooks with perfect prosody.
+            STAGE 3. LYRICAL ENGINEERING(Hyper-realism): (If vocal) Craft sticky hooks with perfect prosody.
+                     - STRICT ZERO-CLICHÉ POLICY: Regardless of the language used, absolutely avoid phrases or their translated equivalents for: "window pane", "rain on the glass", "tears", "whisper", "echo", "neon", "broken heart", "neon lights", "darkness", "scars", "chasing dreams".
+                     - OBJECT-ORIENTED IMAGERY: Replace abstract emotional descriptors with gritty, specific, and tangible objects. Instead of expressing direct emotions (e.g., "I'm sad"), describe "The coffee stain on the receipt", "The rust on the bicycle", or "The blinking cursor on the screen". Focus on the physical world to evoke the psychological state.
             STAGE 4. SONIC ARCHITECTURE: 
                 * AUTO INSTRUMENT MODE: ${formData.isAutoInstruments ? 'ON (AI chooses best instruments for the theme)' : 'OFF (Stick to user selection)'}
                 * AUTO MIXING MODE: ${formData.isAutoMixing ? 'ON (AI chooses best production style)' : 'OFF (Stick to user selection)'}
@@ -144,6 +146,7 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
 
 
