@@ -128,7 +128,7 @@ app.post('/api/generate', async (req, res) => {
             2. STRUCTURE OPTIMIZATION: Build the song body based on the reference.
                **CRITICAL RULE**: DO NOT generate [Intro] or [Outro] tags in the lyrics section. Let the Style Prompt drive the intro naturally.
             3. STYLE PROMPT (SONIC FINGERPRINT): Construct a high-fidelity "5-Layer Tag" system:
-               Layer 1: Main Genre & Sub-genre & **"${vocalTagsString}" (MANDATORY)**
+               Layer 1: Main Genre & Sub-genre & **"${vocalTagsString}" (MANDATORY)** & The user's selected 'genre' MUST be the **VERY FIRST TAG** in the 'Style Prompt'. If input is "재즈" (Korean), you MUST translate and output "Jazz" (or specific sub-genres like "Smooth Jazz", "Bebop" depending on the vibe). Never ignore the selected genre. The Theme should adapt to the Genre, not the other way around.
                Layer 2: Key Instruments (e.g., "${selectedVocals.includes('휘파람') ? 'Whistling' : ''}", etc.)
                Layer 3: Mood & Emotional Atmosphere
                Layer 4: Tempo (BPM) & Rhythm Style
@@ -158,6 +158,7 @@ app.post('/api/generate', async (req, res) => {
 
 
 module.exports = app;
+
 
 
 
