@@ -43,7 +43,10 @@ export default async function handler(request: Request) {
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', sunoResponse.headers.get('content-type') || 'audio/mpeg');
     responseHeaders.set('Access-Control-Allow-Origin', '*');
-    responseHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    // Vercel 자체 캐싱을 강력하게 막아 기존 경고음이 캐시되는 것 방지
+    responseHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    responseHeaders.set('CDN-Cache-Control', 'no-store');
+    responseHeaders.set('Vercel-CDN-Cache-Control', 'no-store');
     
     // 스트리밍 필수 범위 헤더 전달
     if (sunoResponse.headers.get('content-range')) {
